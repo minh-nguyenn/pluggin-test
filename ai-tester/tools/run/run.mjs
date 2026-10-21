@@ -11,7 +11,10 @@
 //     { "name": "sp", "width": 375, "height": 667, "figmaFrame": "sp" },
 //     { "name": "1366", "width": 1366, "height": 900 }                      // độ rộng thiết bị: chỉ kiểm tra layout (C-05)
 //   ],
-//   "sections": [ { "name": "FV", "figmaNode": { "pc": "7307:51877", "sp": "7553:72125" }, "selector": { "pc": "main > section:nth-of-type(1)", "sp": "…" } } ],
+//   "sections": [
+//     { "name": "FV", "figmaNode": { "pc": "7307:51877", "sp": "7553:72125" }, "selector": { "pc": "main > section:nth-of-type(1)", "sp": "…" } },
+//     { "name": "NEWS", "figmaNode": "…", "selector": "…", "dynamic": true }   // nội dung lấy từ CMS: khác chữ → REVIEW, không NG
+//   ],
 //   "hover": [ { "name": "Nút CTA", "selector": "a.cta" } ],
 //   "settleMs": 1500
 // }
@@ -88,7 +91,7 @@ for (const vp of cfg.viewports) {
       if (!id) continue;
       const node = findNode(frame, id);
       if (!node) { rows.push({ section: s.name, kind: 'section', prop: 'figmaNode', expected: id, status: 'REVIEW', note: 'Không tìm thấy node trong frame Figma' }); continue; }
-      rows.push(...compareSection(s.name, node, data));
+      rows.push(...compareSection(s.name, node, data, frame.absoluteBoundingBox, { dynamic: Boolean(s.dynamic) }));
     }
     // Ảnh vùng lệch
     const ngBySection = {};
@@ -127,10 +130,28 @@ for (const { vp, rows, data, compared } of summary) {
   md += `\n## ${vp.name} (${vp.width}×${vp.height})${compared ? ` — so với Figma frame ${vp.figmaFrame}` : ' — chỉ kiểm tra layout (C-05)'}\n\n`;
   md += `Trang cao ${data.doc.scrollHeight}px · OK ${c('OK')} · NG ${c('NG')} · REVIEW ${c('REVIEW')}\n\n`;
   for (const [name, s] of Object.entries(data.sections)) if (s.missing) md += `- ⚠ Section ${name}: không tìm thấy selector \`${s.selector}\`\n`;
-  const bad = rows.filter((r) => r.status !== 'OK');
+  // Thứ tự: NG không phải số (nội dung, màu, font…) → NG lệch lớn → NG lệch < 1px → REVIEW
+  const rank = (r) => (r.status === 'REVIEW' ? 3 : typeof r.delta !== 'number' ? 0 : Math.abs(r.delta) >= 1 ? 1 : 2);
+  rows.sort((a, b) => rank(a) - rank(b) || (Math.abs(b.delta ?? 0) - Math.abs(a.delta ?? 0)));
+  // Gộp dòng REVIEW giống hệt nhau (cùng thuộc tính, mong đợi, thực tế) thành một dòng ×N; NG giữ từng dòng
+  const bad = [];
+  const groups = new Map();
+  for (const r of rows.filter((x) => x.status !== 'OK')) {
+    if (r.status === 'REVIEW' && r.prop !== 'content' && r.prop !== 'match') {
+      const g = `${r.kind}|${r.prop}|${r.expected}|${r.actual}|${r.note}`;
+      if (groups.has(g)) { groups.get(g).count++; groups.get(g).sections.add(r.section); continue; }
+      const item = { ...r, count: 1, sections: new Set([r.section]) };
+      groups.set(g, item); bad.push(item);
+    } else bad.push(r);
+  }
   if (bad.length) {
     md += `\n| # | Section | Loại | Figma | Website | Thuộc tính | Mong đợi | Thực tế | Δ | KQ | Ảnh | Ghi chú |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n`;
-    bad.forEach((r, i) => { md += `| ${i + 1} | ${esc(r.section)} | ${r.kind} | ${esc(r.figma)} | ${esc(r.site)} | ${r.prop} | ${esc(r.expected)} | ${esc(r.actual)} | ${r.delta ?? ''} | ${r.status} | ${r.reviewRow ? `review-${r.section} #${r.reviewRow}` : ''} | ${esc(r.note)} |\n`; });
+    bad.forEach((r, i) => {
+      const sec = r.count > 1 ? [...r.sections].join(', ') : r.section;
+      const fig = r.count > 1 ? `(×${r.count} phần tử)` : r.figma;
+      const site = r.count > 1 ? '' : r.site;
+      md += `| ${i + 1} | ${esc(sec)} | ${r.kind} | ${esc(fig)} | ${esc(site)} | ${r.prop} | ${esc(r.expected)} | ${esc(r.actual)} | ${r.delta ?? ''} | ${r.status} | ${r.reviewRow ? `review-${r.section} #${r.reviewRow}` : ''} | ${esc(r.note)} |\n`;
+    });
   }
   if (data.hover?.length) {
     md += `\n### Hover\n\n| Phần tử | Thay đổi khi hover |\n|---|---|\n`;

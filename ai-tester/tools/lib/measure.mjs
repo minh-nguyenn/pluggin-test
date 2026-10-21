@@ -87,10 +87,11 @@ async function hoverDiff(page, sel, name) {
 // Chạy trong trình duyệt
 function collect({ sections }) {
   const PROPS = ['display', 'position', 'font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'color',
-    'text-align', 'text-decoration-line', 'background-color', 'background-image', 'opacity',
+    'text-align', 'text-decoration-line', 'text-transform', 'background-color', 'background-image', 'opacity',
     'border-top-width', 'border-top-color', 'border-top-style', 'border-right-width', 'border-bottom-width', 'border-left-width',
     'border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius',
-    'box-shadow', 'object-fit', 'overflow-x', 'text-overflow', 'white-space'];
+    'box-shadow', 'object-fit', 'overflow-x', 'text-overflow', 'white-space',
+    'padding-top', 'padding-right', 'padding-bottom', 'padding-left'];
   const abs = (r) => ({ x: r.x + scrollX, y: r.y + scrollY, width: r.width, height: r.height });
   const norm = (s) => (s || '').replace(/[\s　]+/g, ' ').trim();
   const out = {
@@ -124,14 +125,25 @@ function collect({ sections }) {
       }
       if (x1 < Infinity) textBox = { x: x1 + scrollX, y: y1 + scrollY, width: x2 - x1, height: y2 - y1 };
     }
+    // Viền vẽ bằng ::before / ::after (thường gặp khi làm hover) — ghi lại để so với stroke Figma
+    let pseudoBorder = null;
+    for (const ps of ['::before', '::after']) {
+      const p = getComputedStyle(el, ps);
+      if (p.content === 'none' || p.display === 'none') continue;
+      const w = ['top', 'right', 'bottom', 'left'].map((sd) => parseFloat(p.getPropertyValue(`border-${sd}-width`)) || 0);
+      if (w.some((v) => v > 0)) { pseudoBorder = { from: ps, widths: w, color: p.getPropertyValue('border-top-color') || p.getPropertyValue('border-bottom-color') }; break; }
+    }
     const tag = el.tagName.toLowerCase();
     const hasVisual = tag === 'img' || tag === 'svg' || tag === 'video' || tag === 'canvas' || tag === 'picture'
       || (cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)') || cs.backgroundImage !== 'none'
       || parseFloat(cs.borderTopWidth) > 0 || parseFloat(cs.borderBottomWidth) > 0 || parseFloat(cs.borderLeftWidth) > 0
-      || cs.boxShadow !== 'none';
+      || cs.boxShadow !== 'none' || Boolean(pseudoBorder);
+    const fullText = norm(el.textContent).slice(0, 500);
+    // text: nội dung hiển thị, GIỮ xuống dòng (<br>, block) để so "xuống dòng chỉ định" với \n của Figma
+    const text = fullText ? (el.innerText || '').replace(/\r/g, '').split('\n').map((l) => l.replace(/[ \t　]+/g, ' ').trim()).filter(Boolean).join('\n').slice(0, 500) : '';
     const item = {
       i: out.elements.length, tag, cls: (el.getAttribute('class') || '').slice(0, 80),
-      rect: abs(r), style, ownText: ownText.slice(0, 500), fullText: norm(el.textContent).slice(0, 500), textBox,
+      rect: abs(r), style, pseudoBorder, ownText: ownText.slice(0, 500), fullText, text, textBox,
       inline: cs.display.startsWith('inline') && cs.display !== 'inline-block' && cs.display !== 'inline-flex' && cs.display !== 'inline-grid',
       hasVisual, src: el.currentSrc || el.getAttribute('src') || undefined, href: el.getAttribute('href') || undefined,
       alt: el.getAttribute('alt') ?? undefined, sections: secEls.filter(([, s]) => s.contains(el)).map(([n]) => n),

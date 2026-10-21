@@ -33,9 +33,9 @@ Viewport width = width của frame Figma tương ứng. Viewport height: lấy t
 | | | | | | | | | |
 
 ## 3. Section (mã SECTION dùng trong Bug ID; node-id + selector dùng cho `run.json`)
-| Mã SCREEN | Tên section trong Figma | node-id PC | node-id SP | Selector website PC | Selector website SP | Mã SECTION |
-|---|---|---|---|---|---|---|
-| | | | | | | |
+| Mã SCREEN | Tên section trong Figma | node-id PC | node-id SP | Selector website PC | Selector website SP | Nội dung CMS? | Mã SECTION |
+|---|---|---|---|---|---|---|---|
+| | | | | | | | |
 
 ## 4. Quy tắc & quyết định
 Mỗi câu trả lời của người dùng được lưu tại đây đúng nội dung và đúng phạm vi đã xác nhận. Tra bảng này trước khi hỏi.
