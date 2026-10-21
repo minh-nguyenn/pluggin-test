@@ -121,7 +121,11 @@ _Rà soát lần cuối: 2026-10-21 (xem `/ai-tester:update`)._
   - Viewport có `figmaFrame` → so với Figma; viewport không có → chỉ kiểm tra layout (cuộn ngang, phần tử lộ ra ngoài viewport, chữ bị cắt) theo C-05. Có hover → ghi thay đổi style khi hover.
   - Kết quả: `summary.md` (bảng NG/REVIEW), `<viewport>/compare.json` (mọi dòng, kể cả OK — căn cứ cho báo cáo), `<viewport>/review-<section>-<n>.png` (ảnh [Figma | website] chỉ vùng NG), `site.png`, `styles.json`.
   - `run.json` do AI lập từ `D/CLAUDE.md` (mẫu ở đầu file `run.mjs`): mọi giá trị (width, height, node-id, selector) phải có nguồn. Selector section chưa có → dò DOM một lần, lưu vào bảng section của `D/CLAUDE.md`.
-  - Script **chỉ so số liệu**: AI áp quy tắc C-xx / R-xx cho từng dòng NG/REVIEW. Script không thay thế kiểm tra tương tác, nội dung CMS, link.
+  - Script **chỉ so số liệu**: AI áp quy tắc C-xx / R-xx cho từng dòng NG/REVIEW. Script không thay thế kiểm tra slider/menu/modal/form, nội dung CMS.
+  - Script đã tự kiểm: **status mọi link** (mục "Link" trong `summary.md`, chi tiết `links.json`) và **mọi anchor cùng trang** (click chuột thật, chờ cuộn dừng, đo vị trí đích so với đáy header — dòng `anchor`). AI không kiểm lại link/anchor bằng tay, trừ khi dòng đó là REVIEW.
+  - Đo các viewport song song (`"concurrency"`, mặc định 3). Viewport chỉ kiểm tra layout đo nhẹ, chỉ chụp ảnh khi có lỗi. Lần đầu mỗi màn: tải PNG section Figma song song với lúc đo.
+  - Xem kỹ một vùng: `node "${CLAUDE_PLUGIN_ROOT}/tools/run/crop.mjs" --figma <cache>/png/<node>.png --frect x,y,w,h --site <viewport>/site.png --srect x,y,w,h --zoom 3 --out <file>`. Không tự viết script cắt/phóng ảnh. Ảnh `review-*.png` đã tự phóng to phần tử nhỏ tới 4 lần.
+  - `run.mjs` lỗi → báo người dùng ngay (kèm thông báo lỗi) và ghi `P/knowledge/lessons-learned.md` để sửa plugin. Có thể vá tạm một bản sao trong scratchpad để chạy tiếp, nhưng không được im lặng bỏ qua lỗi của plugin.
   - Cách script so (để đọc đúng bảng): x tính từ mép trang; y tính từ mép section, đã trừ **lệch chung y** của section (báo một dòng riêng). Hộp chữ tự co giãn so theo mốc khớp nhất (mép trái / tâm / mép phải), chênh độ rộng báo riêng. Chữ inline hoặc trong nhãn/nút so theo tâm dòng chữ. Chữ nhiều style lấy style chiếm nhiều ký tự nhất. Viền đọc cả `::before/::after` và `box-shadow inset`. Section nội dung CMS → đánh `"dynamic": true` trong `run.json`.
   - Bảng `summary.md` xếp: NG không phải số → NG lệch ≥ 1px → NG lệch < 1px (thường do toạ độ lẻ Figma C-01 / làm tròn hộp chữ C-03) → REVIEW (dòng giống nhau gộp "×N").
   - Basic auth: `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` lúc chạy. Thiếu module → báo người dùng chạy `npm install` trong thư mục plugin.
@@ -160,7 +164,7 @@ Dòng `overlay` = **so ảnh chồng** cả section (tín hiệu độc lập, k
 - **Comment Figma** liên quan → `D/figma-issues.md` (kèm comment id).
 - **Màn và component liên quan**, **styleguide** (mục 5): đối chiếu khi một giá trị Figma của màn nghi ngờ (lệch styleguide, lệch màn tương tự).
 - **Trạng thái**: hover (so `summary.md` với variant Figma), mega-menu / drawer / modal / tab / form — mở và so với frame Figma tương ứng.
-- **Tương tác & link**: anchor, slider (số slide, prev/next, trạng thái đầu/cuối), link (`curl` status mọi href nội bộ), `tel:` / `mailto:` — chuột thật, kiểm thay đổi trạng thái.
+- **Tương tác**: link và anchor đã có trong `summary.md`. Tự kiểm: slider (số slide, prev/next, trạng thái đầu/cuối), menu, modal, tab, form — chuột thật, kiểm thay đổi trạng thái. `tel:` / `mailto:`: đối chiếu giá trị trong mục "Link" với chữ hiển thị và Figma.
 - Section không ghép được, dòng REVIEW: kiểm tra tay bằng số đo.
 - Áp quy tắc cho mọi dòng NG/REVIEW: theo `D/CLAUDE.md` (R-xx) và C-01…C-09; dòng nào chưa có căn cứ → đưa vào danh sách câu hỏi.
 - **Hỏi một lần** cho mọi bất cập của bước 3–4 (mục 4).

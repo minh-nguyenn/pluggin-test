@@ -2,18 +2,30 @@
 import fs from 'node:fs';
 import { PNG } from 'pngjs';
 
-const load = (f) => PNG.sync.read(fs.readFileSync(f));
+// Giải mã mỗi ảnh một lần (ảnh toàn trang rất lớn, dùng lại cho mọi section)
+const cache = new Map();
+export const load = (f) => {
+  const k = `${f}|${fs.statSync(f).mtimeMs}`;
+  if (!cache.has(k)) cache.set(k, PNG.sync.read(fs.readFileSync(f)));
+  return cache.get(k);
+};
 
-function crop(img, x, y, w, h) {
-  x = Math.max(0, Math.floor(x)); y = Math.max(0, Math.floor(y));
-  w = Math.max(1, Math.min(Math.ceil(w), img.width - x)); h = Math.max(1, Math.min(Math.ceil(h), img.height - y));
+/** Cắt đúng w×h tại (x, y); phần nằm ngoài ảnh gốc tô trắng (không bao giờ đọc ra ngoài buffer) */
+export function crop(img, x, y, w, h) {
+  x = Math.floor(x); y = Math.floor(y);
+  w = Math.max(1, Math.ceil(w)); h = Math.max(1, Math.ceil(h));
   const out = new PNG({ width: w, height: h });
-  for (let r = 0; r < h; r++) img.data.copy(out.data, r * w * 4, ((y + r) * img.width + x) * 4, ((y + r) * img.width + x + w) * 4);
+  out.data.fill(255);
+  const sx = Math.max(0, x), sy = Math.max(0, y);
+  const ex = Math.min(img.width, x + w), ey = Math.min(img.height, y + h);
+  if (ex <= sx || ey <= sy) return out;
+  for (let r = sy; r < ey; r++) img.data.copy(out.data, ((r - y) * w + (sx - x)) * 4, (r * img.width + sx) * 4, (r * img.width + ex) * 4);
   return out;
 }
 
-function fit(img, maxW, maxH) {
-  const s = Math.min(1, maxW / img.width, maxH / img.height);
+/** Thu nhỏ cho vừa khung; phần tử nhỏ được phóng to tối đa `zoom` lần (nearest-neighbor, giữ nguyên từng pixel) */
+export function fit(img, maxW, maxH, zoom = 1) {
+  const s = Math.min(zoom, maxW / img.width, maxH / img.height);
   if (s === 1) return img;
   const w = Math.max(1, Math.round(img.width * s)), h = Math.max(1, Math.round(img.height * s));
   const out = new PNG({ width: w, height: h });
@@ -97,8 +109,11 @@ export function reviewSheet(pairs, figmaPng, sitePng, outFile, { pad = 16, maxW 
   if (!pairs.length) return null;
   const F = load(figmaPng), S = load(sitePng);
   const rows = pairs.map(({ figBox, siteBox }) => {
-    const a = fit(crop(F, figBox.x - pad, figBox.y - pad, figBox.width + pad * 2, figBox.height + pad * 2), maxW, maxH);
-    const b = fit(crop(S, siteBox.x - pad, siteBox.y - pad, siteBox.width + pad * 2, siteBox.height + pad * 2), maxW, maxH);
+    const ca = crop(F, figBox.x - pad, figBox.y - pad, figBox.width + pad * 2, figBox.height + pad * 2);
+    const cb = crop(S, siteBox.x - pad, siteBox.y - pad, siteBox.width + pad * 2, siteBox.height + pad * 2);
+    // Cùng một tỷ lệ cho cả cặp; phần tử nhỏ (icon, nhãn) phóng to tối đa 4 lần để thấy từng pixel
+    const s = Math.min(4, maxW / Math.max(ca.width, cb.width), maxH / Math.max(ca.height, cb.height));
+    const a = fit(ca, ca.width * s, ca.height * s, s), b = fit(cb, cb.width * s, cb.height * s, s);
     return [a, b];
   });
   const W = maxW * 2 + gap * 3, H = rows.reduce((s, [a, b]) => s + Math.max(a.height, b.height) + gap, gap);

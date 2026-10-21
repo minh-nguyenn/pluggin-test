@@ -54,16 +54,18 @@ export async function exportPngs(fileKey, ids, dir, { refresh = false } = {}) {
   fs.mkdirSync(dir, { recursive: true });
   const fileOf = (id) => path.join(dir, `${id.replace(/[:;]/g, '-')}.png`);
   const need = ids.filter((id) => refresh || !fs.existsSync(fileOf(id)));
-  for (let i = 0; i < need.length; i += 20) {
-    const batch = need.slice(i, i + 20);
+  // Figma render theo lô (song song các lô), tải ảnh về song song
+  const batches = [];
+  for (let i = 0; i < need.length; i += 10) batches.push(need.slice(i, i + 10));
+  await Promise.all(batches.map(async (batch) => {
     const j = await api(`/v1/images/${fileKey}?ids=${encodeURIComponent(batch.join(','))}&format=png&scale=1`);
-    for (const id of batch) {
+    await Promise.all(batch.map(async (id) => {
       const url = j.images?.[id];
-      if (!url) continue;
+      if (!url) return;
       const r = await fetch(url);
       if (r.ok) fs.writeFileSync(fileOf(id), Buffer.from(await r.arrayBuffer()));
-    }
-  }
+    }));
+  }));
   return Object.fromEntries(ids.filter((id) => fs.existsSync(fileOf(id))).map((id) => [id, fileOf(id)]));
 }
 

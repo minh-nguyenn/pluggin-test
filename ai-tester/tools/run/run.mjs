@@ -25,7 +25,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fetchNodes, fileMeta, exportPngs, findNode, normId } from '../lib/figma.mjs';
-import { measureAll } from '../lib/measure.mjs';
+import { measureAll, linkChecks } from '../lib/measure.mjs';
 import { compareSection } from '../lib/compare.mjs';
 import { reviewSheet, overlayDiff } from '../lib/image.mjs';
 
@@ -66,14 +66,50 @@ if (useFigma) {
 }
 
 // 2. Đo website (một lần mở trình duyệt)
-const measured = await measureAll(cfg, out);
+// Tải PNG mọi section từ Figma NGAY LÚC NÀY, song song với việc đo website (lần đầu có thể mất vài phút)
+const allSecIds = useFigma ? [...new Set((cfg.sections || []).flatMap((s) => (typeof s.figmaNode === 'string' ? [s.figmaNode] : Object.values(s.figmaNode || {}))).map(normId))] : [];
+const pngReady = useFigma && allSecIds.length
+  ? exportPngs(cfg.figma.fileKey, allSecIds, path.join(cache, 'png')).catch((e) => { notes.push(`⚠ Không tải được ảnh section Figma: ${e.message}`); return {}; })
+  : Promise.resolve({});
+const measured = await measureAll(cfg, out, log);
 log('Đã đo', Object.keys(measured).join(', '));
+
+// 2b. Status mọi link (một lần cho cả trang, lấy từ các viewport so Figma)
+let links = [];
+if (cfg.functional !== false) {
+  const hrefs = Object.values(measured).flatMap((m) => m.data?.hrefs ?? []);
+  links = await linkChecks(cfg, hrefs);
+  log('Đã kiểm tra', links.length, 'link');
+}
 
 // 3. So sánh + kiểm tra layout
 const summary = [];
 for (const vp of cfg.viewports) {
-  const { dir, data } = measured[vp.name];
+  const { dir, data, error } = measured[vp.name];
   const rows = [];
+  if (!data) {
+    rows.push({ section: '(trang)', kind: 'lỗi', prop: 'đo', status: 'REVIEW', note: `Không đo được viewport này: ${error}` });
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'compare.json'), JSON.stringify(rows, null, 1));
+    summary.push({ vp, rows, data: { doc: { scrollHeight: '?' }, sections: {} }, compared: false });
+    continue;
+  }
+  // Anchor (click chuột thật): không cuộn tới đích / đích bị header che → NG; còn lại ghi số đo để AI so với design
+  for (const a of data.anchors ?? []) {
+    const base = { section: '(trang)', kind: 'anchor', site: `${a.text} → ${a.hash}` };
+    if (a.error) rows.push({ ...base, prop: 'click', status: 'REVIEW', note: a.error });
+    else if (!a.found) rows.push({ ...base, prop: 'đích', expected: a.hash, actual: '(không có phần tử có id này)', status: 'NG' });
+    else {
+      const top = Math.round(a.targetTop * 100) / 100, hb = Math.round(a.headerBottom * 100) / 100;
+      const hidden = a.targetTop < a.headerBottom - 0.5;
+      const notScrolled = a.scrollY === a.before && Math.abs(a.targetTop) > data.doc.vh;
+      // Đích còn cách đáy header hơn 1/4 màn hình sau khi cuộn dừng hẳn → anchor không đưa đích lên đầu
+      const far = !hidden && a.targetTop - a.headerBottom > data.doc.vh / 4;
+      rows.push({ ...base, prop: 'vị trí đích sau click', expected: `sát đáy header (${hb})`, actual: `top ${top} (cách header ${Math.round((a.targetTop - a.headerBottom) * 100) / 100}), scrollY ${a.scrollY}`,
+        status: hidden || notScrolled || far ? 'NG' : 'REVIEW',
+        note: notScrolled ? 'Click không cuộn trang' : hidden ? 'Đích bị header che' : far ? 'Cuộn dừng nhưng đích chưa lên đầu màn hình' : 'Cuộn tới đích; AI so khoảng cách với design' });
+    }
+  }
   // Layout (mọi viewport)
   if (data.doc.scrollWidth > data.doc.vw + 0.5) rows.push({ section: '(trang)', kind: 'layout', prop: 'cuộn ngang', expected: data.doc.vw, actual: data.doc.scrollWidth, status: 'NG' });
   for (const o of data.overflow) {
@@ -99,7 +135,7 @@ for (const vp of cfg.viewports) {
     }
     // So ảnh chồng từng section (tín hiệu độc lập): chỉ báo vùng khác mà chưa phần tử nào đã so giải thích được
     if (useFigma && Object.keys(metas).length) {
-      const pngs = await exportPngs(cfg.figma.fileKey, cfg.sections.filter((s) => metas[s.name]).map(secIdOf), path.join(cache, 'png'));
+      const pngs = await pngReady;
       for (const s of cfg.sections.filter((x) => metas[x.name] && !data.sections[x.name]?.missing)) {
         const m = metas[s.name], png = pngs[secIdOf(s)];
         if (!png) continue;
@@ -119,7 +155,7 @@ for (const vp of cfg.viewports) {
     }
     const secIds = Object.keys(ngBySection).map((n) => { const s = cfg.sections.find((x) => x.name === n); return typeof s.figmaNode === 'string' ? s.figmaNode : s.figmaNode[vp.figmaFrame]; });
     if (secIds.length && useFigma) {
-      const pngs = await exportPngs(cfg.figma.fileKey, secIds, path.join(cache, 'png'));
+      const pngs = await pngReady;
       for (const [name, pairs] of Object.entries(ngBySection)) {
         const s = cfg.sections.find((x) => x.name === name);
         const id = normId(typeof s.figmaNode === 'string' ? s.figmaNode : s.figmaNode[vp.figmaFrame]);
@@ -179,6 +215,22 @@ for (const { vp, rows, data, compared } of summary) {
     md += `\n### Hover\n\n| Phần tử | Thay đổi khi hover |\n|---|---|\n`;
     for (const h of data.hover) md += `| ${esc(h.name)} | ${h.error ? h.error : h.changes.length ? esc(h.changes.map((x) => `${x.where} ${x.prop}: ${x.before} → ${x.after}`).join('; ')) : '(không đổi)'} |\n`;
   }
+}
+if (links.length) {
+  const bad = links.filter((l) => l.error || (l.status && l.status >= 400));
+  const telMail = links.filter((l) => l.kind === 'tel' || l.kind === 'mailto');
+  md += `\n## Link (toàn trang)\n\n${links.length} link · lỗi ${bad.length} · tel/mailto ${telMail.length}\n`;
+  if (bad.length) {
+    md += `\n| # | Link | Loại | Kết quả | KQ |\n|---|---|---|---|---|\n`;
+    bad.forEach((l, i) => { md += `| ${i + 1} | ${esc(l.href)} | ${l.kind ?? ''} | ${l.error ? esc(l.error) : `HTTP ${l.status}`} | NG |\n`; });
+  }
+  if (telMail.length) {
+    md += `\n| tel / mailto | Giá trị (đối chiếu với chữ hiển thị và Figma) |\n|---|---|\n`;
+    for (const l of telMail) md += `| ${l.kind} | ${esc(l.value)} |\n`;
+  }
+  const redirected = links.filter((l) => l.finalUrl);
+  if (redirected.length) md += `\n${redirected.length} link bị chuyển hướng (xem \`links.json\`).\n`;
+  fs.writeFileSync(path.join(out, 'links.json'), JSON.stringify(links, null, 1));
 }
 fs.writeFileSync(path.join(out, 'summary.md'), md);
 log('Xong →', path.join(out, 'summary.md'));
