@@ -27,7 +27,7 @@ import path from 'node:path';
 import { fetchNodes, fileMeta, exportPngs, findNode, normId } from '../lib/figma.mjs';
 import { measureAll } from '../lib/measure.mjs';
 import { compareSection } from '../lib/compare.mjs';
-import { reviewSheet } from '../lib/image.mjs';
+import { reviewSheet, overlayDiff } from '../lib/image.mjs';
 
 const argv = process.argv.slice(2);
 const arg = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? (argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : true) : undefined; };
@@ -86,12 +86,28 @@ for (const vp of cfg.viewports) {
   // So với Figma (chỉ viewport có figmaFrame)
   const frame = vp.figmaFrame && frames[vp.figmaFrame];
   if (frame) {
+    const secIdOf = (s) => normId(typeof s.figmaNode === 'string' ? s.figmaNode : s.figmaNode[vp.figmaFrame]);
+    const metas = {};
     for (const s of cfg.sections || []) {
       const id = s.figmaNode && (typeof s.figmaNode === 'string' ? s.figmaNode : s.figmaNode[vp.figmaFrame]);
       if (!id) continue;
       const node = findNode(frame, id);
       if (!node) { rows.push({ section: s.name, kind: 'section', prop: 'figmaNode', expected: id, status: 'REVIEW', note: 'Không tìm thấy node trong frame Figma' }); continue; }
-      rows.push(...compareSection(s.name, node, data, frame.absoluteBoundingBox, { dynamic: Boolean(s.dynamic) }));
+      const secRows = compareSection(s.name, node, data, frame.absoluteBoundingBox, { dynamic: Boolean(s.dynamic) });
+      metas[s.name] = secRows.meta;
+      rows.push(...secRows);
+    }
+    // So ảnh chồng từng section (tín hiệu độc lập): chỉ báo vùng khác mà chưa phần tử nào đã so giải thích được
+    if (useFigma && Object.keys(metas).length) {
+      const pngs = await exportPngs(cfg.figma.fileKey, cfg.sections.filter((s) => metas[s.name]).map(secIdOf), path.join(cache, 'png'));
+      for (const s of cfg.sections.filter((x) => metas[x.name] && !data.sections[x.name]?.missing)) {
+        const m = metas[s.name], png = pngs[secIdOf(s)];
+        if (!png) continue;
+        const origin = { x: m.figX, y: data.sections[s.name].rect.y + m.off.y };
+        const { regions, file } = overlayDiff(png, path.join(dir, 'site.png'), origin, m.explainedText, path.join(dir, `overlay-${s.name}.png`), { images: m.images });
+        for (const [i, r] of regions.entries()) rows.push({ section: s.name, kind: 'overlay', prop: 'vùng khác (ảnh chồng)', expected: `${r.x},${r.y} ${r.width}×${r.height}`, actual: `độ khác ${r.score}`, status: 'REVIEW', note: `Không trùng phần tử chữ/ảnh nào đã so — xem overlay-${s.name}.png vùng #${i + 1}` });
+        if (file) log('Ảnh chồng:', path.relative(out, file), `(${regions.length} vùng)`);
+      }
     }
     // Ảnh vùng lệch
     const ngBySection = {};
@@ -144,15 +160,21 @@ for (const { vp, rows, data, compared } of summary) {
       groups.set(g, item); bad.push(item);
     } else bad.push(r);
   }
-  if (bad.length) {
-    md += `\n| # | Section | Loại | Figma | Website | Thuộc tính | Mong đợi | Thực tế | Δ | KQ | Ảnh | Ghi chú |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n`;
-    bad.forEach((r, i) => {
+  // Bảng chính: NG ≥ 1px / NG không phải số / REVIEW. Bảng phụ cuối mục: NG < 1px (thường C-01, C-03)
+  const tiny = (r) => r.status === 'NG' && typeof r.delta === 'number' && Math.abs(r.delta) < 1;
+  const table = (list, title) => {
+    if (!list.length) return;
+    md += `\n${title}\n\n| # | Section | Loại | Figma | Website | Thuộc tính | Mong đợi | Thực tế | Δ | KQ | Ảnh | Ghi chú |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n`;
+    list.forEach((r, i) => {
       const sec = r.count > 1 ? [...r.sections].join(', ') : r.section;
       const fig = r.count > 1 ? `(×${r.count} phần tử)` : r.figma;
       const site = r.count > 1 ? '' : r.site;
-      md += `| ${i + 1} | ${esc(sec)} | ${r.kind} | ${esc(fig)} | ${esc(site)} | ${r.prop} | ${esc(r.expected)} | ${esc(r.actual)} | ${r.delta ?? ''} | ${r.status} | ${r.reviewRow ? `review-${r.section} #${r.reviewRow}` : ''} | ${esc(r.note)} |\n`;
+      const img = r.reviewRow ? `review-${r.section} #${r.reviewRow}` : r.kind === 'overlay' ? `overlay-${r.section}` : '';
+      md += `| ${i + 1} | ${esc(sec)} | ${r.kind} | ${esc(fig)} | ${esc(site)} | ${r.prop} | ${esc(r.expected)} | ${esc(r.actual)} | ${r.delta ?? ''} | ${r.status} | ${img} | ${esc(r.note)} |\n`;
     });
-  }
+  };
+  table(bad.filter((r) => !tiny(r)), '### Cần xử lý');
+  table(bad.filter(tiny), '### NG lệch < 1px (thường do toạ độ lẻ Figma C-01 hoặc làm tròn hộp chữ C-03 — AI vẫn phải xác nhận)');
   if (data.hover?.length) {
     md += `\n### Hover\n\n| Phần tử | Thay đổi khi hover |\n|---|---|\n`;
     for (const h of data.hover) md += `| ${esc(h.name)} | ${h.error ? h.error : h.changes.length ? esc(h.changes.map((x) => `${x.where} ${x.prop}: ${x.before} → ${x.after}`).join('; ')) : '(không đổi)'} |\n`;

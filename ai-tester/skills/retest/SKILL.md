@@ -21,3 +21,5 @@ argument-hint: "[Bug ID... | tên màn hình]"
 6. Cập nhật trạng thái trong `D/bugs.md` (Đã đóng / Mở lại / Chờ xác nhận) và cột Retest.
 7. Thêm kết quả vào mục "8. Kết quả retest" của báo cáo mới `D/screens/<screen>/report-YYYYMMDD.md` (loại test: Retest). Không xóa kết quả cũ.
 8. Tóm tắt trong chat: số bug đã đóng / mở lại / chờ xác nhận, bug hồi quy mới (nếu có).
+
+**Không chạy kiểm tra chéo (`ui-reviewer`) khi retest** — `run.mjs` (so số liệu + so ảnh chồng) và kiểm tra hồi quy đã đủ. Ngoại lệ: Figma đổi nhiều, hoặc website sửa lớn (layout/section mới) → hỏi người dùng có chạy lại như lượt test đầu không.

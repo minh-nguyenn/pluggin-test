@@ -230,6 +230,9 @@ export function compareSection(sectionName, figmaSection, data, frameBox, { dyna
     num(push, ctx, 'height', f.pos.height, best.pos.height);
     if (f.kind === 'box') compareBox(push, ctx, f.node, best);
   }
+  // Cho bước so ảnh chồng: lệch chung, vùng chữ đã so (khác biệt trong đó là do vẽ chữ — C-02), vùng ảnh (C-04)
+  const boxesOf = (kind) => { const m = new Map(); for (const r of rows) if (r.kind === kind && r.figBox) m.set(r.figma, r.figBox); return [...m.values()]; };
+  rows.meta = { off, explainedText: boxesOf('text'), images: boxesOf('image'), figX: figmaSection.absoluteBoundingBox.x - (frameBox ? frameBox.x : figmaSection.absoluteBoundingBox.x) };
   return rows;
 }
 

@@ -152,7 +152,9 @@ _Rà soát lần cuối: 2026-10-21 (xem `/ai-tester:update`)._
 Gọi subagent **`ai-tester:ui-reviewer`** chạy nền **ngay lúc này** (không cần kết quả lượt 1): truyền màn hình, link Figma, URL, viewport/độ rộng, đường dẫn `run.json` — **không** truyền kết quả lượt 1.
 
 ### Bước 3 — So sánh tự động
-Chạy `run.mjs`. Đọc `summary.md`; mở `review-*.png` cho các dòng NG cần xem hình. Ghi **phiên bản Figma** (lastModified, version) từ `summary.md`.
+Chạy `run.mjs`. Đọc `summary.md`: bảng **"Cần xử lý"** trước, bảng NG < 1px sau. Mở `review-*.png` cho dòng NG cần xem hình. Ghi **phiên bản Figma** (lastModified, version) từ `summary.md`.
+
+Dòng `overlay` = **so ảnh chồng** cả section (tín hiệu độc lập, không qua AI): vùng Figma ↔ website khác nhau mà không trùng phần tử chữ/ảnh nào đã so (vd thiếu/thừa hoạ tiết, ảnh nền, icon sai hình, khối bị dời vì nội dung phía trên khác). Mỗi vùng phải được giải thích: bằng một dòng NG đã có, bằng quy tắc (R-xx/C-xx), hoặc thành bug mới. Không bỏ qua vùng chưa giải thích.
 
 ### Bước 4 — Phần script không làm
 - **Comment Figma** liên quan → `D/figma-issues.md` (kèm comment id).
@@ -170,7 +172,9 @@ Chạy `run.mjs`. Đọc `summary.md`; mở `review-*.png` cho các dòng NG c�
 
 ### Bước 6 — Gộp kiểm tra chéo
 - Nhận kết quả `ui-reviewer`; phát hiện mới phải đo lại trước khi ghi thành bug.
+- **Hai lượt (hoặc script và lượt 2) cho kết quả khác nhau** → đo lại lần thứ ba bằng **công cụ khác** với lần đo trước (script ↔ trình duyệt / Figma MCP ↔ REST), ghi giờ đo; kết luận theo lần đo lại, không chọn tin theo một lượt.
 - Chạy lại các phép đo tương tác quan trọng ngay trước khi viết báo cáo (L-07).
+- **Ghi hiệu quả kiểm tra chéo**: thêm 1 dòng vào mục "Hiệu quả kiểm tra chéo" của `P/knowledge/lessons-learned.md` — số phát hiện mới của lượt 2 theo loại, số điểm kiểm chứng script sai, số vùng so ảnh chồng chưa giải thích. Loại lỗi lượt 2 bắt được ≥ 2 lần → đề xuất đưa vào script/checklist lượt 1. Lượt 2 không có phát hiện mới ở 3 màn liên tiếp của cùng dự án → đề xuất thu hẹp lượt 2.
 - Không dùng được subagent → tự kiểm tra lại phần tương tác/nội dung theo thứ tự ngược (dưới lên, SP trước PC).
 - Lỗi lượt 1 bỏ sót → `P/knowledge/lessons-learned.md` + bổ sung checklist nếu có thể lặp lại.
 

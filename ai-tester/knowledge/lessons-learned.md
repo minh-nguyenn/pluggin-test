@@ -32,3 +32,11 @@ Mỗi lần AI phải hỏi người dùng → ghi 1 dòng: vì sao phải hỏi
 | 2026-10-21 | RECRUIT / TOP | Footer SP: cùng component mà Figma có mục cao 45px và 48px | Figma không nhất quán trong cùng component | Dùng 48px vì được dùng nhiều hơn (R-06 dự án) | Gặp component không nhất quán → đếm số lần dùng mỗi giá trị, đưa vào câu hỏi; hỏi luôn phạm vi (AI đã tự ghi "không suy rộng" mà không hỏi phạm vi) |
 | 2026-10-21 | RECRUIT / TOP | Lưới 2 cột SP: Figma tổng 334 trong khung 335, site chia đều 157.5/163.5 | Figma thiếu 1px, không thể khớp tuyệt đối cả hai | Chấp nhận chia đều (R-07 dự án) | Lỗi làm tròn kiểu này có thể lặp ở dự án khác → hỏi người dùng có áp dụng chung không |
 | 2026-10-21 | RECRUIT / TOP | Khối お知らせ TOP ẩn khi không có tin, trái với quy tắc "list rỗng hiện câu trống" | Quy tắc dự án mâu thuẫn với code hiện tại | TOP được ẩn — ngoại lệ (R-04 dự án) | Khi thấy ngoại lệ của quy tắc đã có → ghi ngoại lệ ngay cạnh quy tắc gốc |
+
+## 3. Hiệu quả kiểm tra chéo
+
+Mỗi lượt test đầu của một màn hình → 1 dòng. Dùng để quyết định đưa loại lỗi nào vào script/checklist lượt 1, và khi nào thu hẹp lượt 2.
+
+| Ngày | Dự án / Màn hình | Lượt 2 phát hiện mới (số, theo loại) | Kiểm chứng script (số điểm sai / 10) | Vùng so ảnh chồng chưa giải thích | Hành động |
+|---|---|---|---|---|---|
+| 2026-10-21 | RECRUIT / TOP (trước khi có `run.mjs`) | 5: tương tác 1 (anchor không cuộn), typography 1 (letter-spacing), spacing 1 (padding nhãn), icon 1, trạng thái header 1 | — | — | Đã đưa vào checklist (L-07, L-08) và script (`run.mjs` so mọi typography) |

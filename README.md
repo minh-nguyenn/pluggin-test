@@ -131,7 +131,7 @@ Trạng thái mỗi hạng mục: **OK** / **NG** / **Cần xác nhận (Need Ch
 | Test UI | Không sai số; mỗi lỗi ghi mong đợi / thực tế / chênh lệch; checklist gồm layout, kích thước, khoảng cách, font, màu, ảnh, nội dung, trạng thái, link, slide, modal, phân trang, số điện thoại, responsive, trường hợp biên |
 | So sánh tự động | `tools/run/run.mjs`: đọc Figma một lần (có cache, tự báo khi design đổi), đo mọi độ rộng trong một lần mở trình duyệt, so **từng phần tử** (chữ: nội dung, font, cỡ, độ đậm, line-height, letter-spacing, màu, vị trí; khối: vị trí, kích thước, nền, bo góc, viền, shadow; ảnh/icon: vị trí, kích thước), xuất bảng NG và ảnh [Figma \| website] của vùng lệch. 4 độ rộng đo trong khoảng 40 giây |
 | Test CMS | Đối chiếu từng trường CMS với website |
-| Kiểm tra chéo | Subagent `ui-reviewer` chạy song song ngay từ đầu, độc lập với lượt 1: kiểm tra tương tác bằng chuột thật, link, nội dung, trường hợp biên, và tự đo 10 phần tử mẫu để kiểm chứng script |
+| Kiểm tra chéo | Subagent `ui-reviewer` chạy song song ngay từ đầu, độc lập với lượt 1: kiểm tra tương tác bằng chuột thật, link, nội dung, trường hợp biên, và tự đo 10 phần tử mẫu để kiểm chứng script. Hai lượt khác nhau thì đo lại bằng công cụ khác. Không chạy khi retest |
 | Quản lý bug & retest | Bug theo màn hình → section, có bằng chứng; retest kiểm tra design đã đổi chưa và kiểm tra hồi quy |
 | Hỏi ngay, không đoán | Gặp điểm chưa rõ thì hỏi ngay; lưu câu trả lời để không hỏi lại |
 | Hook bảo vệ | Chặn ghi mật khẩu/token vào `.ai-tester/`; tự kiểm tra báo cáo thiếu mục hoặc kết luận quá mức |
