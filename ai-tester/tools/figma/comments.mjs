@@ -5,7 +5,8 @@
 //   --node : chỉ lấy comment gắn với node đó (vd 1:23 hoặc 1-23) và các trả lời của nó
 //   --all  : lấy cả comment đã resolve (mặc định chỉ lấy comment chưa resolve)
 // Token: tạo trong Figma > Settings > Security > Personal access tokens (quyền đọc file comments).
-// Không ghi token vào file; chỉ đặt bằng biến môi trường lúc chạy.
+// Không ghi token vào file; chỉ đặt bằng biến môi trường (Windows: biến môi trường cấp User cũng được).
+import { figmaToken as readToken } from '../lib/figma.mjs';
 
 const args = Object.fromEntries(
   process.argv.slice(2).reduce((acc, a, i, arr) => {
@@ -13,7 +14,7 @@ const args = Object.fromEntries(
     return acc;
   }, [])
 );
-const figmaToken = process.env.FIGMA_TOKEN;
+const figmaToken = readToken();
 if (!args.file) { console.error('Thiếu --file <fileKey>.'); process.exit(1); }
 if (!figmaToken) { console.error('Chưa có biến môi trường FIGMA_TOKEN.'); process.exit(2); }
 

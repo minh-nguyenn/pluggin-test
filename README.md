@@ -19,6 +19,15 @@ cd <đường dẫn>/aitest/ai-tester
 npm install
 ```
 
+### Bước 1b — Cài Figma token (một lần mỗi máy, bắt buộc để so sánh chính xác)
+Token dùng để đọc toàn bộ thông số của frame Figma (vị trí, font, màu… của mọi phần tử) và đọc comment.
+1. Tạo token: Figma › Settings › Security › Personal access tokens. Cấp quyền đọc **File content** và **Comments**.
+2. Lưu token thành biến môi trường của tài khoản Windows. Mở PowerShell và chạy (thay `<token>` bằng token thật):
+   ```
+   [Environment]::SetEnvironmentVariable('FIGMA_TOKEN', '<token>', 'User')
+   ```
+   Token chỉ nằm trong biến môi trường của máy bạn, **không** nằm trong file nào. Script của plugin tự đọc biến này, không cần khởi động lại Claude Code.
+
 ### Bước 2 — Thêm marketplace (một lần mỗi máy)
 Trong Claude Code:
 ```
@@ -85,6 +94,9 @@ Lần đầu, AI tạo thư mục `.ai-tester/` và hỏi những thông tin cò
 | C-03 | Line-height | Quy đổi line-height Figma sang px rồi so; lệch là NG |
 | C-04 | Ảnh bị nén | Không so pixel màu; kiểm tra đúng ảnh, kích thước, crop, độ nét |
 | C-05 | Độ rộng test | So chính xác ở width frame Figma + lượt kiểm tra layout ở độ rộng thiết bị |
+| C-07 | Figma không nhất quán trong cùng component | Dùng giá trị được dùng nhiều hơn; số lần bằng nhau thì hỏi |
+| C-08 | Lưới chia cột lệch do Figma làm tròn (vd 334 trong 335) | Chấp nhận site chia đều |
+| C-09 | Thang mức độ bug | High (chức năng hỏng, 404, sai nội dung) / Medium (lệch dễ thấy) / Low (lệch nhỏ vài px) |
 | C-06 | Git | Commit `.ai-tester/`; không commit ảnh/số liệu bằng chứng (`evidence/`) |
 
 Danh sách mới nhất: [ai-tester/knowledge/common-rules.md](ai-tester/knowledge/common-rules.md).
@@ -117,9 +129,9 @@ Trạng thái mỗi hạng mục: **OK** / **NG** / **Cần xác nhận (Need Ch
 | Đọc Figma toàn diện | Đọc hết thông số màn được giao, màn và component liên quan, styleguide / design system, comment Figma |
 | Đối chiếu màn tương tự | Khi Figma không thống nhất, tìm màn có layout tương tự làm bằng chứng khi hỏi |
 | Test UI | Không sai số; mỗi lỗi ghi mong đợi / thực tế / chênh lệch; checklist gồm layout, kích thước, khoảng cách, font, màu, ảnh, nội dung, trạng thái, link, slide, modal, phân trang, số điện thoại, responsive, trường hợp biên |
-| Script đo | Xuất CSS của mọi phần tử, chụp ảnh, so ảnh với Figma |
+| So sánh tự động | `tools/run/run.mjs`: đọc Figma một lần (có cache, tự báo khi design đổi), đo mọi độ rộng trong một lần mở trình duyệt, so **từng phần tử** (chữ: nội dung, font, cỡ, độ đậm, line-height, letter-spacing, màu, vị trí; khối: vị trí, kích thước, nền, bo góc, viền, shadow; ảnh/icon: vị trí, kích thước), xuất bảng NG và ảnh [Figma \| website] của vùng lệch. 4 độ rộng đo trong khoảng 40 giây |
 | Test CMS | Đối chiếu từng trường CMS với website |
-| Kiểm tra chéo | Subagent `ui-reviewer` test lại độc lập để tìm lỗi bị bỏ sót |
+| Kiểm tra chéo | Subagent `ui-reviewer` chạy song song ngay từ đầu, độc lập với lượt 1: kiểm tra tương tác bằng chuột thật, link, nội dung, trường hợp biên, và tự đo 10 phần tử mẫu để kiểm chứng script |
 | Quản lý bug & retest | Bug theo màn hình → section, có bằng chứng; retest kiểm tra design đã đổi chưa và kiểm tra hồi quy |
 | Hỏi ngay, không đoán | Gặp điểm chưa rõ thì hỏi ngay; lưu câu trả lời để không hỏi lại |
 | Hook bảo vệ | Chặn ghi mật khẩu/token vào `.ai-tester/`; tự kiểm tra báo cáo thiếu mục hoặc kết luận quá mức |
@@ -128,6 +140,6 @@ Trạng thái mỗi hạng mục: **OK** / **NG** / **Cần xác nhận (Need Ch
 ---
 
 ## 6. Lưu ý hiện tại
-- Plugin **chưa chạy thử trên dự án thật**. Lần chạy đầu có thể cần điều chỉnh; hãy báo lại chỗ AI làm chưa đúng.
-- **Thang mức độ bug** chưa được định nghĩa, AI sẽ hỏi ở dự án đầu tiên.
+- Đã chạy thử lần đầu trên repo La Class Recruit (màn TOP); bài học ghi ở [lessons-learned.md](ai-tester/knowledge/lessons-learned.md). Công cụ so sánh tự động (`run.mjs`) được viết sau lần chạy đó: phần đo website đã chạy thật, phần so với Figma mới kiểm chứng bằng dữ liệu giả — cần chạy thật với Figma token.
+- Hãy báo lại chỗ AI làm chưa đúng; AI sẽ ghi thành bài học.
 - Bảo trì plugin: xem [CLAUDE.md](CLAUDE.md).

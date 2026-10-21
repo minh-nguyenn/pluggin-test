@@ -25,6 +25,7 @@ Mục có đánh dấu `[+ YYYY-MM-DD]` là mục bổ sung từ bài học (xem
 - [ ] Màu chữ
 - [ ] Text-align, xuống dòng chỉ định (`<br>`), giới hạn số dòng / ellipsis
 - [ ] Text-decoration (underline link...)
+- [ ] So **mọi** text với Figma (font-size, weight, line-height, **letter-spacing**, màu) — không giới hạn ở điểm đo trong file kiểm tra của dev `[+ 2026-10-21, L-08]`
 
 ## D. Màu sắc
 - [ ] Background của section/khối
@@ -38,6 +39,7 @@ Mục có đánh dấu `[+ YYYY-MM-DD]` là mục bổ sung từ bài học (xem
 - [ ] Icon đúng loại, kích thước, màu
 - [ ] Ảnh khác nhau giữa PC/SP (nếu Figma quy định)
 - [ ] Thuộc tính alt có nội dung phù hợp
+- [ ] Icon nhỏ (mũi tên, chevron…): so kích thước và vị trí bằng số đo, xem ảnh phóng to (≥4x) với Figma `[+ 2026-10-21, L-08]`
 
 ## F. Nội dung
 - [ ] Text đúng từng ký tự so với Figma (dấu câu, full-width/half-width, ký hiệu)
@@ -52,10 +54,12 @@ Mục có đánh dấu `[+ YYYY-MM-DD]` là mục bổ sung từ bài học (xem
 - [ ] Cursor pointer trên phần tử click được
 - [ ] Slide / carousel: số slide, nút prev/next, dots, autoplay, vuốt trên SP, vòng lặp, trạng thái slide đầu/cuối `[+ 2026-10-21, L-01]`
 - [ ] Modal / popup: mở, đóng (nút X, click nền, phím Esc), cuộn bên trong, khóa cuộn nền, hiển thị SP `[+ 2026-10-21, L-01]`
+- [ ] Header: mở và so **từng trạng thái** với frame Figma tương ứng (mega-menu PC, drawer SP, trạng thái cuộn) `[+ 2026-10-21, L-08]`
+- [ ] Tương tác (anchor, slider, modal, menu) đo bằng **chuột thật** (`page.mouse` / `locator.click()`), kiểm thay đổi trạng thái (scrollY, class mở, slide hiện tại); **chạy lại ngay trước khi viết báo cáo** và ghi giờ đo `[+ 2026-10-21, L-07]`
 
 ## H. Link & điều hướng
 - [ ] Link đến đúng URL, mở cùng tab / tab mới đúng yêu cầu
-- [ ] Anchor link cuộn đến đúng vị trí (không bị header che)
+- [ ] Anchor link cuộn đến đúng vị trí (không bị header che) — đo scrollY sau khi click bằng chuột thật `[+ 2026-10-21, L-07]`
 - [ ] Breadcrumb, pagination
 - [ ] Phân trang: số trang, trang hiện tại, nút đầu/cuối/trước/sau, trạng thái disabled, URL khi chuyển trang `[+ 2026-10-21, L-01]`
 - [ ] Số điện thoại / email: nội dung đúng từng ký tự, link `tel:` / `mailto:` đúng (đặc biệt trên SP) `[+ 2026-10-21, L-01]`

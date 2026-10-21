@@ -18,7 +18,11 @@ ai-tester/                         # Plugin root (${CLAUDE_PLUGIN_ROOT})
   agents/ui-reviewer.md            # Subagent kiểm tra chéo
   hooks/hooks.json                 # Chặn ghi mật khẩu; kiểm tra báo cáo
   scripts/*.cjs                    # Script của hook (CommonJS vì package.json là "type": "module")
-  tools/measure/measure.mjs        # Đo website (Playwright + Chrome)
+  tools/run/run.mjs                # So sánh tự động Figma ↔ website (công cụ chính)
+  tools/lib/figma.mjs              #   Figma REST API + cache (FIGMA_TOKEN)
+  tools/lib/measure.mjs            #   Đo website: mọi viewport trong 1 lần mở Chrome
+  tools/lib/compare.mjs            #   Ghép + so từng phần tử trong section
+  tools/lib/image.mjs              #   Ảnh đối chiếu vùng NG
   tools/figma/comments.mjs         # Đọc comment Figma (FIGMA_TOKEN)
   package.json, package-lock.json  # playwright, pngjs, pixelmatch — `npm install` tại ai-tester/
   knowledge/                       # Quy tắc chung, checklist, bài học — AI ghi vào khi học
@@ -36,3 +40,4 @@ Dữ liệu từng dự án nằm trong **repo website**, thư mục `.ai-tester
 5. Giới hạn độ dài: `skills/*/SKILL.md` tối đa 500 dòng; `.ai-tester/CLAUDE.md` của dự án tối đa 200 dòng.
 6. Mỗi lần sửa plugin: chạy `claude plugin validate ./ai-tester` và `claude plugin validate .`; chạy thử hook/script liên quan; cập nhật `README.md` nếu cách dùng thay đổi; cập nhật ngày "Rà soát lần cuối" trong `skills/test/SKILL.md` nếu thay đổi công cụ.
 7. Hook chỉ được tác động lên `.ai-tester/` và `knowledge/`/`templates/` của plugin — không chặn hay sửa mã nguồn website.
+8. Sửa `tools/lib/compare.mjs` hoặc `measure.mjs`: chạy lại bài tự kiểm tra (dựng Figma giả từ `styles.json` của một trang thật, cài vài lệch) — mọi lệch cài vào phải ra NG, phần còn lại ra OK.

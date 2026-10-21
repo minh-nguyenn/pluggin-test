@@ -18,7 +18,7 @@ Trước khi test, mọi dòng phải có giá trị hoặc ghi "Không áp dụ
 | CMS | | |
 | Quyền CMS hiện có | | |
 | Được phép thao tác dữ liệu CMS? | | |
-| Thang mức độ bug (riêng dự án, hoặc "dùng common-rules") | | |
+| Thang mức độ bug (riêng dự án, hoặc "dùng C-09") | | |
 | Breakpoint chuyển PC/SP | | |
 | Độ rộng thiết bị test thêm (PC / SP, theo C-05) | | |
 | Figma token để đọc comment (chỉ ghi "đã có / chưa có") | | |
@@ -26,16 +26,16 @@ Trước khi test, mọi dòng phải có giá trị hoặc ghi "Không áp dụ
 | Quy tắc chung nào KHÔNG áp dụng cho dự án | | |
 
 ## 2. Màn hình
-Viewport = width của frame Figma tương ứng.
+Viewport width = width của frame Figma tương ứng. Viewport height: lấy từ Figma (vd frame FV dùng chiều cao màn hình) hoặc người dùng xác nhận — ảnh hưởng phần tử dùng `100vh`.
 
-| Màn hình | Mã SCREEN | URL website | Frame PC (node-id) | Width PC | Frame SP (node-id) | Width SP | Frame trung gian | CMS liên quan |
+| Màn hình | Mã SCREEN | URL website | Frame PC (node-id) | Width × height viewport PC | Frame SP (node-id) | Width × height viewport SP | Frame trung gian | CMS liên quan |
 |---|---|---|---|---|---|---|---|---|
 | | | | | | | | | |
 
-## 3. Section (mã SECTION dùng trong Bug ID)
-| Mã SCREEN | Tên section trong Figma | node-id PC | node-id SP | Mã SECTION |
-|---|---|---|---|---|
-| | | | | |
+## 3. Section (mã SECTION dùng trong Bug ID; node-id + selector dùng cho `run.json`)
+| Mã SCREEN | Tên section trong Figma | node-id PC | node-id SP | Selector website PC | Selector website SP | Mã SECTION |
+|---|---|---|---|---|---|---|
+| | | | | | | |
 
 ## 4. Quy tắc & quyết định
 Mỗi câu trả lời của người dùng được lưu tại đây đúng nội dung và đúng phạm vi đã xác nhận. Tra bảng này trước khi hỏi.

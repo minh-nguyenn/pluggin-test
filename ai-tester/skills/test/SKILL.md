@@ -77,7 +77,7 @@ Màn hình mới: thêm vào bảng màn hình và bảng section trong `D/CLAUD
 
 **Trước khi hỏi** — tra: "Quy tắc & quyết định" trong `D/CLAUDE.md` → `D/figma-issues.md` → `P/knowledge/common-rules.md`. Khớp rõ ràng → áp dụng, ghi ID quy tắc làm căn cứ. Chỉ "na ná" → **hỏi**, không suy rộng.
 
-**Khi hỏi**: hỏi **ngay lúc phát hiện** (có thể gộp câu hỏi phát sinh cùng lúc). Nêu vị trí (màn hình, section, phần tử, PC/SP), giá trị Figma PC / SP / website, screenshot, các lựa chọn; đề xuất ghi rõ là đề xuất. Luôn hỏi **phạm vi áp dụng**: chỉ chỗ này / cả màn hình / cả dự án / mọi dự án. Hạng mục phụ thuộc → "Cần xác nhận".
+**Khi hỏi**: **gom theo giai đoạn** để ít lần chờ: (1) một lần ở Bước 0 cho mọi câu hỏi về đầu vào/khởi tạo; (2) một lần sau Bước 4 cho mọi bất cập Figma/website phát hiện được. Bất cập chặn toàn bộ việc test (URL sai, sai frame Figma) → hỏi ngay. Nêu vị trí (màn hình, section, phần tử, PC/SP), giá trị Figma PC / SP / website, screenshot, các lựa chọn; đề xuất ghi rõ là đề xuất. Luôn hỏi **phạm vi áp dụng**: chỉ chỗ này / cả màn hình / cả dự án / mọi dự án. Hạng mục phụ thuộc → "Cần xác nhận".
 
 **Sau khi có câu trả lời** — lưu ngay: ghi **đúng nội dung và đúng phạm vi** đã xác nhận, kèm tình huống gốc và ngày; không tự mở rộng hay gộp.
 - Phạm vi dự án/màn hình/chỗ cụ thể → "Quy tắc & quyết định" trong `D/CLAUDE.md`.
@@ -113,14 +113,21 @@ Khác biệt chưa có căn cứ → "Cần xác nhận" (không phải OK, khô
 
 _Rà soát lần cuối: 2026-10-21 (xem `/ai-tester:update`)._
 
-- **Figma MCP**: `get_metadata` (frame, node-id, kích thước), `get_screenshot` (ảnh bằng chứng), `get_design_context` / `get_variable_defs` (giá trị chính xác). URL `node-id=1-23` → `1:23`.
-- **Trình duyệt** (Claude in Chrome hoặc built-in browser): thao tác tương tác (hover, menu, modal, form, slide). Đo bằng computed style / `getBoundingClientRect()`, không ước lượng bằng mắt.
-- **Script đo** (Playwright + Chrome trên máy): xuất computed style mọi phần tử (`styles.json`), chụp ảnh; `--figma <png>` tạo `diff.png`.
+- **So sánh tự động `run.mjs`** — công cụ chính (Playwright + Chrome trên máy + Figma REST API):
   ```
-  node "${CLAUDE_PLUGIN_ROOT}/tools/measure/measure.mjs" --url <URL> --width <px> --out .ai-tester/screens/<s>/evidence/<YYYYMMDD>_<pc|sp|width> [--scope "<selector>"] [--figma <png cùng kích thước>]
+  node "${CLAUDE_PLUGIN_ROOT}/tools/run/run.mjs" --config .ai-tester/screens/<s>/run.json --out .ai-tester/screens/<s>/evidence/<YYYYMMDD> --cache .ai-tester/screens/<s>/evidence/figma-cache
   ```
-  Basic auth: biến môi trường `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` lúc chạy. Lỗi thiếu module → báo người dùng chạy `npm install` trong thư mục plugin.
-- **Comment Figma** (REST API, token qua biến môi trường `FIGMA_TOKEN` lúc chạy; chưa có → hỏi):
+  - Đọc cây node Figma **một lần** (cache; tự đọc lại và cảnh báo khi Figma đổi `lastModified`), đo **mọi viewport trong một lần mở trình duyệt**, so **từng phần tử** trong từng section: chữ (nội dung, font-family/size/weight, line-height, letter-spacing, màu, căn lề, vị trí, kích thước), khối (vị trí, kích thước, nền, bo góc, viền, shadow, opacity), ảnh/icon (vị trí, kích thước). Không sai số.
+  - Viewport có `figmaFrame` → so với Figma; viewport không có → chỉ kiểm tra layout (cuộn ngang, phần tử lộ ra ngoài viewport, chữ bị cắt) theo C-05. Có hover → ghi thay đổi style khi hover.
+  - Kết quả: `summary.md` (bảng NG/REVIEW), `<viewport>/compare.json` (mọi dòng, kể cả OK — căn cứ cho báo cáo), `<viewport>/review-<section>-<n>.png` (ảnh [Figma | website] chỉ vùng NG), `site.png`, `styles.json`.
+  - `run.json` do AI lập từ `D/CLAUDE.md` (mẫu ở đầu file `run.mjs`): mọi giá trị (width, height, node-id, selector) phải có nguồn. Selector section chưa có → dò DOM một lần, lưu vào bảng section của `D/CLAUDE.md`.
+  - Script **chỉ so số liệu**: AI áp quy tắc C-xx / R-xx cho từng dòng NG/REVIEW. Script không thay thế kiểm tra tương tác, nội dung CMS, link.
+  - Basic auth: `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` lúc chạy. Thiếu module → báo người dùng chạy `npm install` trong thư mục plugin.
+- **Figma token**: biến môi trường `FIGMA_TOKEN` (Windows: script tự đọc biến môi trường cấp User). Không có token → chạy `run.mjs --no-figma` (chỉ đo + layout) và lấy giá trị Figma bằng Figma MCP theo từng section; báo cáo ghi rõ phạm vi so sánh bị giới hạn.
+- **Figma MCP**: `get_metadata` (frame, node-id, kích thước), `get_variable_defs` (styleguide), `get_screenshot`. **Không** gọi `get_design_context` cho cả trang (50–150KB/lần); chỉ gọi cho node cụ thể khi cần (L-02).
+- **Trình duyệt / Playwright**: tương tác (anchor, menu, modal, slider, form) bằng **chuột thật**, kiểm thay đổi trạng thái; chạy lại ngay trước khi viết báo cáo (L-07). Viết script tạm vào scratchpad, dùng lại trong phiên — không viết script mới cho từng phép đo.
+- **Ảnh**: chỉ xem `review-*.png` (vùng NG) và ảnh phóng to vùng cần kiểm tra. Không đọc ảnh toàn trang để "so bằng mắt"; không kết luận OK từ ảnh (L-03).
+- **Comment Figma** (REST API, token như trên):
   ```
   node "${CLAUDE_PLUGIN_ROOT}/tools/figma/comments.mjs" --file <fileKey> [--node <node-id>] [--all]
   ```
@@ -130,34 +137,42 @@ _Rà soát lần cuối: 2026-10-21 (xem `/ai-tester:update`)._
 
 ## 7. Các bước test
 
+### Bước 0 — Kiểm tra đầu vào (≤ 2 phút, trước mọi việc khác)
+- URL: mở được, title/đường dẫn đúng dự án và đúng màn hình (sai site → hỏi ngay).
+- Link Figma: `get_metadata` một lần cho frame PC/SP — đúng tên màn hình, lấy width/height.
+- `FIGMA_TOKEN` có không; phạm vi màn hình (thiếu → hỏi).
+- Repo chưa có `D` → các câu hỏi khởi tạo (mục 3). **Gom mọi câu hỏi của bước này vào một lần hỏi.**
+
 ### Bước 1 — Chuẩn bị
-Đọc dữ liệu (mục 3). Lập danh sách hạng mục test từ `P/knowledge/checklists/*` + yêu cầu riêng trong `D/CLAUDE.md`; mỗi hạng mục có ID (`UI-01`, `CMS-03`). Không đọc `D/archive/` trừ khi tra lịch sử.
+Đọc dữ liệu (mục 3). Lập danh sách hạng mục test từ `P/knowledge/checklists/*` + yêu cầu riêng trong `D/CLAUDE.md`; mỗi hạng mục có ID (`UI-01`, `CMS-03`). Không đọc `D/archive/` trừ khi tra lịch sử. Lập `D/screens/<s>/run.json` (mục 6).
 
-### Bước 2 — Phân tích Figma
-- Ghi **phiên bản Figma**: thời điểm đọc + version/lastModified nếu có. Mỗi giá trị Figma dùng để đối chiếu ghi kèm node-id.
-- **Đọc hết thông số** màn được giao; **đọc màn và component liên quan** (main component của instance, màn dùng chung component/layout); ghi node-id đã đọc.
-- **Đọc comment Figma** liên quan → ghi `D/figma-issues.md` (kèm comment id); comment chưa resolve mâu thuẫn design → hỏi ngay. Không có token → "Không thể kiểm tra — chưa đọc được comment".
-- Liệt kê section/component, trạng thái (hover, active, disabled, focus, empty, error, loading, mở/đóng...). Đối chiếu PC/SP, đối chiếu với `D/styleguide.md` và các màn đã test. Lệch → mục 5.2.
+### Bước 2 — Khởi động kiểm tra chéo song song
+Gọi subagent **`ai-tester:ui-reviewer`** chạy nền **ngay lúc này** (không cần kết quả lượt 1): truyền màn hình, link Figma, URL, viewport/độ rộng, đường dẫn `run.json` — **không** truyền kết quả lượt 1.
 
-### Bước 3 — Kiểm thử UI (lượt 1)
-Từng section, trên xuống, PC và SP ở width frame Figma. Mỗi hạng mục ghi: giá trị Figma, giá trị đo, **chênh lệch** (vd `+4px`, `#333333 → #3A3A3A`, thiếu 1 ký tự), kết luận, bằng chứng.
+### Bước 3 — So sánh tự động
+Chạy `run.mjs`. Đọc `summary.md`; mở `review-*.png` cho các dòng NG cần xem hình. Ghi **phiên bản Figma** (lastModified, version) từ `summary.md`.
 
-Không chỉ bằng mắt: pixel, kích thước, khoảng cách, màu, font, trạng thái tương tác, nội dung, hình ảnh, responsive, link và chức năng (slide, modal, phân trang, số điện thoại...).
+### Bước 4 — Phần script không làm
+- **Comment Figma** liên quan → `D/figma-issues.md` (kèm comment id).
+- **Màn và component liên quan**, **styleguide** (mục 5): đối chiếu khi một giá trị Figma của màn nghi ngờ (lệch styleguide, lệch màn tương tự).
+- **Trạng thái**: hover (so `summary.md` với variant Figma), mega-menu / drawer / modal / tab / form — mở và so với frame Figma tương ứng.
+- **Tương tác & link**: anchor, slider (số slide, prev/next, trạng thái đầu/cuối), link (`curl` status mọi href nội bộ), `tel:` / `mailto:` — chuột thật, kiểm thay đổi trạng thái.
+- Section không ghép được, dòng REVIEW: kiểm tra tay bằng số đo.
+- Áp quy tắc cho mọi dòng NG/REVIEW: theo `D/CLAUDE.md` (R-xx) và C-01…C-09; dòng nào chưa có căn cứ → đưa vào danh sách câu hỏi.
+- **Hỏi một lần** cho mọi bất cập của bước 3–4 (mục 4).
 
-**Không có sai số**: kích thước, khoảng cách, font (family, size, weight, line-height, letter-spacing), màu, radius, shadow, text từng ký tự (dấu câu, full/half-width, xuống dòng chỉ định). Lệch 1px hoặc 1 mã màu → NG. Giá trị lẻ, font render, line-height, ảnh nén, độ rộng thiết bị → theo C-01…C-05 trong `P/knowledge/common-rules.md`, trừ khi `D/CLAUDE.md` quy định khác.
+**Không có sai số**: lệch 1px hoặc 1 mã màu → NG, trừ khi có quy tắc xác nhận đúng trường hợp đó. Mỗi hạng mục ghi giá trị Figma (node-id), giá trị đo, **chênh lệch**, kết luận, bằng chứng. OK chỉ khi có số liệu (`compare.json` hoặc phép đo ghi lại) — không OK từ ảnh.
 
-Sau đó chạy lượt **độ rộng thiết bị** của dự án: layout không vỡ, căn lề, co giãn, ẩn/hiện, xuống dòng (không so từng px). Báo cáo ghi kết quả theo từng độ rộng.
-
-### Bước 4 — Kiểm thử CMS (nếu có)
+### Bước 5 — Kiểm thử CMS (nếu có)
 Đối chiếu từng trường CMS với website; dữ liệu thiếu/sai/chưa cập nhật, trường bắt buộc, rỗng, text dài, ảnh thiếu, thứ tự, công khai/nháp, ngày đăng. Ghi rõ phần không kiểm tra được.
 
-### Bước 5 — Kiểm tra chéo (lượt 2, bắt buộc)
-- Gọi subagent **`ai-tester:ui-reviewer`**: chỉ truyền màn hình, link Figma, URL, viewport/độ rộng — **không** truyền kết quả lượt 1.
-- Phát hiện mới phải đo lại trước khi ghi thành bug.
-- Không dùng được subagent → tự kiểm tra lại theo thứ tự ngược (dưới lên, SP trước PC), tập trung trạng thái tương tác, SP, text dài, ảnh, section nhỏ.
+### Bước 6 — Gộp kiểm tra chéo
+- Nhận kết quả `ui-reviewer`; phát hiện mới phải đo lại trước khi ghi thành bug.
+- Chạy lại các phép đo tương tác quan trọng ngay trước khi viết báo cáo (L-07).
+- Không dùng được subagent → tự kiểm tra lại phần tương tác/nội dung theo thứ tự ngược (dưới lên, SP trước PC).
 - Lỗi lượt 1 bỏ sót → `P/knowledge/lessons-learned.md` + bổ sung checklist nếu có thể lặp lại.
 
-### Bước 6 — Ghi nhận & báo cáo
+### Bước 7 — Ghi nhận & báo cáo
 Cập nhật `D/bugs.md`, `D/figma-issues.md`; tạo `D/screens/<screen>/report-YYYYMMDD.md` theo `P/templates/report.md`. Tóm tắt trong chat.
 
 Retest → dùng `/ai-tester:retest`.
