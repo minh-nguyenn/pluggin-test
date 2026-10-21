@@ -24,6 +24,8 @@ ai-tester/                         # Plugin root (${CLAUDE_PLUGIN_ROOT})
   tools/lib/compare.mjs            #   Ghép + so từng phần tử trong section
   tools/lib/image.mjs              #   Ảnh đối chiếu vùng NG
   tools/run/crop.mjs               # Cắt + phóng ảnh Figma/website để xem kỹ
+  tools/run/probe.mjs              # Kịch bản tương tác khai báo bằng JSON (dùng cho kiểm tra chéo)
+  tools/run/figma-values.mjs       # In giá trị node Figma từ cache
   tools/figma/comments.mjs         # Đọc comment Figma (FIGMA_TOKEN)
   package.json, package-lock.json  # playwright, pngjs, pixelmatch — `npm install` tại ai-tester/
   knowledge/                       # Quy tắc chung, checklist, bài học — AI ghi vào khi học

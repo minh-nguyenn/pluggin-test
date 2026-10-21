@@ -105,7 +105,7 @@ for (const vp of cfg.viewports) {
   }
   // Anchor (click chuột thật): không cuộn tới đích / đích bị header che → NG; còn lại ghi số đo để AI so với design
   for (const a of data.anchors ?? []) {
-    const base = { section: '(trang)', kind: 'anchor', site: `${a.text} → ${a.hash}` };
+    const base = { section: '(trang)', kind: 'anchor', site: a.direct ? `mở trực tiếp URL${a.hash}` : `${a.text} → ${a.hash}` };
     if (a.error) rows.push({ ...base, prop: 'click', status: 'REVIEW', note: a.error });
     else if (!a.found) rows.push({ ...base, prop: 'đích', expected: a.hash, actual: '(không có phần tử có id này)', status: 'NG' });
     else {

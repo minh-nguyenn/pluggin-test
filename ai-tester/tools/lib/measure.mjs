@@ -7,8 +7,16 @@ import path from 'node:path';
 
 const HIDE_SCROLLBAR = 'html{scrollbar-width:none!important}::-webkit-scrollbar{display:none!important}';
 // Công cụ của chế độ dev (không thuộc giao diện) — ẩn để không lẫn vào ảnh chụp / so ảnh chồng
-const DEV_OVERLAYS = ['#nuxt-devtools-container', 'nuxt-devtools-frame', 'nuxt-devtools-inspect-panel', '#vue-tracer-overlay', '.nuxt-devtools-panel', 'vite-error-overlay', '#__vue-devtools-container__', '[data-v-inspector-overlay]', 'nuxt-loading-indicator', '.nuxt-loading-indicator'];
-const isLocal = (url) => /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|[\w-]+\.local)(:\d+)?\//i.test(url + '/');
+export const DEV_OVERLAYS = ['#nuxt-devtools-container', 'nuxt-devtools-frame', 'nuxt-devtools-inspect-panel', '#vue-tracer-overlay', '.nuxt-devtools-panel', 'vite-error-overlay', '#__vue-devtools-container__', '[data-v-inspector-overlay]', 'nuxt-loading-indicator', '.nuxt-loading-indicator'];
+export { HIDE_SCROLLBAR };
+/** Chờ mọi animation/transition đang chạy kết thúc (tối đa `ms`), để ảnh chụp đúng trạng thái cuối */
+export async function waitAnimations(page, ms = 6000) {
+  await page.evaluate((limit) => Promise.race([
+    Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming?.().iterations !== Infinity).map((a) => a.finished.catch(() => {}))),
+    new Promise((r) => setTimeout(r, limit)),
+  ]), ms).catch(() => {});
+}
+export const isLocal = (url) => /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|[\w-]+\.local)(:\d+)?\//i.test(url + '/');
 
 export function pickSel(sel, vp) {
   if (!sel || typeof sel === 'string') return sel || null;
@@ -58,6 +66,7 @@ async function measureOne(browser, cfg, vp, outDir, httpCredentials) {
       scrollTo(0, 0);
     });
     await page.waitForTimeout(cfg.settleMs ?? 1500);
+    await waitAnimations(page); // vd FV có animation 1–2s: chụp khi chưa xong → ảnh trống
     const sections = (cfg.sections || []).map((s) => ({ name: s.name, selector: pickSel(s.selector, vp) }));
     const data = await page.evaluate(collect, { sections, light: !full });
     const hasLayoutIssue = data.doc.scrollWidth > data.doc.vw + 0.5 || data.overflow.length > 0;
@@ -153,6 +162,29 @@ async function anchorChecks(page) {
       res.push({ ...l, before, ...m });
     } catch (e) {
       res.push({ ...l, error: String(e.message || e).split('\n')[0] });
+    }
+  }
+  // Mở trang trực tiếp với #hash (link chia sẻ, link từ trang khác): đích có bị header che không
+  const base = page.url().split('#')[0];
+  for (const l of links) {
+    try {
+      await page.goto(base + l.rawHash, { waitUntil: 'load', timeout: 30000 });
+      await page.waitForTimeout(1500);
+      await waitAnimations(page, 3000);
+      const m = await page.evaluate((hash) => {
+        const t = document.getElementById(hash.slice(1));
+        let headerBottom = 0;
+        for (const el of document.querySelectorAll('body *')) {
+          const cs = getComputedStyle(el);
+          if (cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+          const r = el.getBoundingClientRect();
+          if (r.top <= 0.5 && r.height > 0 && r.height < innerHeight / 2 && r.width >= innerWidth * 0.8) headerBottom = Math.max(headerBottom, r.bottom);
+        }
+        return { found: Boolean(t), targetTop: t ? t.getBoundingClientRect().top : null, scrollY, headerBottom };
+      }, l.hash);
+      res.push({ ...l, direct: true, before: 0, ...m });
+    } catch (e) {
+      res.push({ ...l, direct: true, error: String(e.message || e).split('\n')[0] });
     }
   }
   return res;
