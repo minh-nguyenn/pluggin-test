@@ -44,7 +44,10 @@ Mỗi lần AI phải hỏi người dùng → ghi 1 dòng: vì sao phải hỏi
 
 Mỗi lượt test đầu của một màn hình → 1 dòng. Dùng để quyết định đưa loại lỗi nào vào script/checklist lượt 1, và khi nào thu hẹp lượt 2.
 
+> 2026-10-21: `ui-reviewer` chuyển sang model **Sonnet** (người dùng đồng ý) để nhanh hơn. Theo dõi 2–3 màn tiếp theo: nếu lượt 2 bỏ sót lỗi mà lượt trước (Opus) từng bắt được, hoặc kiểm chứng script sai nhiều → đề xuất đổi lại.
+
 | Ngày | Dự án / Màn hình | Lượt 2 phát hiện mới (số, theo loại) | Kiểm chứng script (số điểm sai / 10) | Vùng so ảnh chồng chưa giải thích | Hành động |
 |---|---|---|---|---|---|
 | 2026-10-21 | RECRUIT / TOP (trước khi có `run.mjs`) | 5: tương tác 1 (anchor không cuộn), typography 1 (letter-spacing), spacing 1 (padding nhãn), icon 1, trạng thái header 1 | — | — | Đã đưa vào checklist (L-07, L-08) và script (`run.mjs` so mọi typography) |
 | 2026-10-21 | RECRUIT / TOP (test lại bằng `run.mjs`) | Lượt 2 không có lỗi mới mà lượt 1 + script bỏ sót về giao diện; thêm: nguyên nhân lỗi anchor (console), hành vi đóng mega-menu (R-10), tải trực tiếp #hash bị header che, textContent h1 lặp ｜, lệch dồn SP | 0 / 10 (lượt 2 kiểm 10 phần tử mẫu, không thấy ghép nhầm) | 0 sau khi AI giải thích (FV do animation chưa xong khi chụp; JOBCAT ngoài viewport; FACILITIES thẻ chú thích 既存素材; CTA ảnh 5 → bug CTA-01) | Đề xuất script: chờ animation/fade-in xong trước khi chụp (ảnh FV trống); chụp `site.png` đủ cao |
+| 2026-10-21 | RECRUIT / TOP (local, run.mjs bản mới) | 1 mới: responsive (nút footer xuống 2 dòng ở 1064, mồ côi 「る」) — script layout không bắt vì không tràn | 0 / 12 (12 phần tử mẫu khớp) | 0 (FV: ảnh đo đúng sau animation; các vùng còn lại đã giải thích như lần trước) | Đề xuất script: ở viewport layout, báo REVIEW khi chữ trong nút / nhãn `whitespace` bình thường bị xuống dòng mà ở độ rộng lân cận (±16px) chỉ 1 dòng |
