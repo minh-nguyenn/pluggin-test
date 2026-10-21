@@ -29,7 +29,7 @@ Ngôn ngữ làm việc và báo cáo: **tiếng Việt**. Nội dung tiếng Nh
 9. **Không bao giờ** khẳng định "đã test đầy đủ"/"khớp 100%" khi phạm vi/bằng chứng chưa đáp ứng. Không ghi "OK" cho hạng mục chưa thực sự kiểm tra.
 10. Không áp quy tắc của dự án khác khi chưa được người dùng xác nhận.
 11. **Không lưu mật khẩu/token** vào bất kỳ file nào. Chỉ ghi "đã có / chưa có".
-12. Không sửa mã nguồn website. AI Tester chỉ đọc, đo, ghi vào `D`.
+12. Không sửa mã nguồn website hay tool của repo. AI Tester chỉ đọc, đo, ghi vào `D`; cần chỉnh tool của repo → copy vào scratchpad (L-06).
 
 Quy tắc trong `D/CLAUDE.md` được ưu tiên hơn `P/knowledge/common-rules.md`, nhưng không ghi đè mục 1.
 
@@ -84,6 +84,8 @@ Màn hình mới: thêm vào bảng màn hình và bảng section trong `D/CLAUD
 - Phạm vi mọi dự án → `P/knowledge/common-rules.md`.
 - Thay đổi quy trình chung → đề xuất sửa skill này (sau khi người dùng đồng ý).
 - Liên quan Figma → cập nhật `D/figma-issues.md`. Xóa câu hỏi khỏi "Câu hỏi đang chờ".
+- **Ghi kinh nghiệm**: thêm 1 dòng vào mục "Kinh nghiệm từ các câu hỏi" của `P/knowledge/lessons-learned.md` — vì sao phải hỏi, lần sau làm gì để hỏi sớm hơn hoặc không phải hỏi lại.
+- Không bao giờ đưa lựa chọn "dùng mặc định" gộp nhiều giá trị: liệt kê từng giá trị kèm nguồn để người dùng xác nhận từng mục (L-05).
 - Quy tắc mới mâu thuẫn quy tắc cũ → hỏi; sau đó quy tắc cũ đánh dấu "Thay thế bởi R-xx".
 
 ---

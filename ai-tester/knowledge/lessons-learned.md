@@ -1,8 +1,30 @@
 # Bài học kinh nghiệm
 
-Ghi lại: lỗi bị bỏ sót ở lượt 1, lỗi người dùng chỉ ra mà AI không phát hiện, lỗi tái diễn, và nguyên nhân gốc đã xác minh.
+Ghi lại: lỗi bị bỏ sót ở lượt 1, lỗi người dùng chỉ ra mà AI không phát hiện, lỗi tái diễn, vấn đề quy trình, và nguyên nhân gốc đã xác minh.
 Mỗi bài học phải dẫn đến một hành động cụ thể (thêm mục checklist, thêm bước quy trình...).
+
+## 1. Bài học
 
 | # | Ngày | Dự án / Màn hình | Chuyện gì xảy ra | Vì sao bỏ sót / nguyên nhân | Hành động phòng tránh | Phạm vi (chung/riêng) | Đã xử lý (mục checklist / file dự án) |
 |---|---|---|---|---|---|---|---|
 | L-01 | 2026-10-21 | Chung | Prompt tester đang dùng yêu cầu kiểm tra slide, modal, phân trang, số điện thoại; checklist chưa có | Checklist ban đầu chưa bao quát các component tương tác thường gặp | Thêm mục kiểm tra slide, modal, phân trang, SĐT/email | Chung | `ui-checklist.md` mục G, H |
+| L-02 | 2026-10-21 | RECRUIT / TOP (lần chạy đầu) | Lượt test chạy ~43 phút vẫn chưa xong (chưa có báo cáo, kiểm tra chéo dừng giữa chừng) | Mỗi phép đo viết script tạm mới và khởi động lại trình duyệt (~30 lần Bash, 10–145s/lần); đọc ~25 ảnh ở lượt 1 + 53 ảnh ở lượt 2 (~20MB) để so bằng mắt; `get_design_context` trả 50–150KB/lần; subagent làm lại toàn bộ từ đầu (20 lần `get_design_context`, 22 phút) | Script so sánh tự động Figma ↔ website theo từng phần tử, đo mọi độ rộng trong một lần mở trình duyệt, cache dữ liệu Figma, chỉ xem ảnh vùng lệch, giới hạn phạm vi kiểm tra chéo | Chung | Chờ người dùng duyệt phương án tối ưu |
+| L-03 | 2026-10-21 | RECRUIT / TOP | Nhiều section được kết luận "khớp hình" sau khi xem ảnh ghép Figma/site | So bằng mắt, không có bảng giá trị từng phần tử → không chứng minh được khớp từng px | Kết luận OK chỉ khi có bảng giá trị Figma vs đo được cho từng phần tử; ảnh chỉ dùng để tìm vùng nghi ngờ | Chung | Chờ người dùng duyệt phương án tối ưu |
+| L-04 | 2026-10-21 | RECRUIT / TOP | Đo theo `top.check.json` do dev tự viết từ Figma | Spec của dev là cách dev hiểu Figma → kiểm tra vòng tròn, sai trong spec không bị phát hiện; chỉ phủ 123 điểm đo | Giá trị mong đợi phải lấy trực tiếp từ Figma (node-id); spec của dev chỉ để tham khảo | Chung | Chờ người dùng duyệt phương án tối ưu |
+| L-05 | 2026-10-21 | RECRUIT / TOP | AI đưa lựa chọn "Đề xuất mặc định" cho cả nhóm thông tin bắt buộc; độ rộng thiết bị (SP 360/375/400/767, PC 768/1064/1366/1920) và quyền CMS được chốt theo đề xuất của AI | Gộp nhiều giá trị vào một lựa chọn "mặc định" → người dùng không thấy từng giá trị | Không dùng lựa chọn "mặc định" gộp; liệt kê từng giá trị kèm nguồn để người dùng xác nhận từng mục | Chung | Skill `test` mục 4 |
+| L-06 | 2026-10-21 | RECRUIT / TOP | AI sửa nhầm tool trong repo website (`.claude/tools/…` bằng `sed -i`) rồi tự hoàn lại | Muốn chỉnh tham số tool của dev nên sửa thẳng file | Muốn dùng tool của repo với tham số khác → copy vào scratchpad; không bao giờ sửa file ngoài `.ai-tester/` | Chung | Skill `test` mục 1 (nguyên tắc 12) |
+
+## 2. Kinh nghiệm từ các câu hỏi
+
+Mỗi lần AI phải hỏi người dùng → ghi 1 dòng: vì sao phải hỏi và lần sau làm gì để hỏi sớm hơn / không phải hỏi lại. Câu trả lời cụ thể vẫn lưu ở quy tắc (R-xx / C-xx); ở đây chỉ ghi kinh nghiệm.
+
+| Ngày | Dự án / Màn hình | Câu hỏi | Vì sao phải hỏi | Câu trả lời (ID quy tắc) | Lần sau làm gì |
+|---|---|---|---|---|---|
+| 2026-10-21 | RECRUIT / TOP | URL người dùng đưa (`entetsu-reform.entetsu.org`) là site khác, `/recruit` 404 | Đầu vào sai site; AI mất ~6 phút dò URL trước khi hỏi | Dùng `la-class.entetsu.org` (`.ai-tester/CLAUDE.md` mục 1) | Bước kiểm tra đầu vào: mở URL, đối chiếu title/đường dẫn với dự án và Figma; sai → hỏi ngay trong 1 phút đầu |
+| 2026-10-21 | RECRUIT | Mã PROJECT cho Bug ID | Dự án mới, skill cấm tự đặt | `RECRUIT` | Hỏi chung với các thông tin khởi tạo khác trong một lần |
+| 2026-10-21 | RECRUIT | Test 1 màn hay cả ~17 màn | Đầu vào chỉ ghi "recruit" | Chỉ TOP | Đầu vào phải nêu màn hình cụ thể; thiếu → hỏi phạm vi ngay từ đầu |
+| 2026-10-21 | RECRUIT | Các thông tin bắt buộc còn thiếu (quyền CMS, độ rộng thiết bị…) | Template có nhiều mục bắt buộc | "Đề xuất mặc định" | Xem L-05: liệt kê từng giá trị, không gộp "mặc định" |
+| 2026-10-21 | RECRUIT | Thang mức độ bug | `common-rules.md` chưa có thang nào | High / Medium / Low (riêng dự án) | Hỏi người dùng có muốn đưa thang này thành quy tắc chung không, để dự án sau khỏi hỏi |
+| 2026-10-21 | RECRUIT / TOP | Footer SP: cùng component mà Figma có mục cao 45px và 48px | Figma không nhất quán trong cùng component | Dùng 48px vì được dùng nhiều hơn (R-06 dự án) | Gặp component không nhất quán → đếm số lần dùng mỗi giá trị, đưa vào câu hỏi; hỏi luôn phạm vi (AI đã tự ghi "không suy rộng" mà không hỏi phạm vi) |
+| 2026-10-21 | RECRUIT / TOP | Lưới 2 cột SP: Figma tổng 334 trong khung 335, site chia đều 157.5/163.5 | Figma thiếu 1px, không thể khớp tuyệt đối cả hai | Chấp nhận chia đều (R-07 dự án) | Lỗi làm tròn kiểu này có thể lặp ở dự án khác → hỏi người dùng có áp dụng chung không |
+| 2026-10-21 | RECRUIT / TOP | Khối お知らせ TOP ẩn khi không có tin, trái với quy tắc "list rỗng hiện câu trống" | Quy tắc dự án mâu thuẫn với code hiện tại | TOP được ẩn — ngoại lệ (R-04 dự án) | Khi thấy ngoại lệ của quy tắc đã có → ghi ngoại lệ ngay cạnh quy tắc gốc |
