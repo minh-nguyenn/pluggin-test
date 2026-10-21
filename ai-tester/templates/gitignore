@@ -1,0 +1,2 @@
+# AI Tester: commit dữ liệu test (.ai-tester/), không commit ảnh/số liệu bằng chứng (quy tắc C-06)
+screens/*/evidence/

@@ -39,13 +39,14 @@ Quy tắc trong `D/CLAUDE.md` được ưu tiên hơn `P/knowledge/common-rules.
 
 ```
 .ai-tester/
+  .gitignore           # Loại trừ evidence/ khỏi git (C-06)
   CLAUDE.md            # Thông tin + mã định danh + quy tắc & quyết định + câu hỏi đang chờ (≤ 200 dòng)
   styleguide.md        # Giá trị chuẩn từ styleguide/file base trong Figma
   figma-issues.md      # Điểm Figma thiếu/mâu thuẫn, comment Figma liên quan + trạng thái
   bugs.md              # Bug đang xử lý
   screens/<screen-slug>/
     report-YYYYMMDD.md # Báo cáo từng lượt test
-    evidence/          # Ảnh Figma, ảnh website, số liệu đo
+    evidence/          # Ảnh Figma, ảnh website, số liệu đo — chỉ lưu trên máy, không commit
   archive/             # Dữ liệu cũ — chỉ tạo khi dọn dẹp (/ai-tester:cleanup); không đọc khi test
 ```
 
@@ -59,7 +60,7 @@ Chỉ dùng các file trên. Cần loại file mới → đề xuất, người 
 
 **Repo chưa có `D` → khởi tạo dự án:**
 1. **Hỏi mã định danh trước**: tên dự án, mã `PROJECT` (dùng trong Bug ID). Không tự đặt.
-2. Tạo `D/` từ `P/templates/`: `CLAUDE.project.md` → `D/CLAUDE.md`, `styleguide.md`, `figma-issues.md`, `bugs.md`.
+2. Tạo `D/` từ `P/templates/`: `CLAUDE.project.md` → `D/CLAUDE.md`, `styleguide.md`, `figma-issues.md`, `bugs.md`, `gitignore` → `D/.gitignore`.
 3. Điền những gì có căn cứ: link người dùng đưa; frame, width, section, node-id đọc từ Figma.
 4. Đọc styleguide / file base (mục 5.1), lưu vào `D/styleguide.md`.
 5. Kiểm tra mục "Thông tin bắt buộc" trong `D/CLAUDE.md`; mục nào chưa có căn cứ → hỏi ngay (vd: frame nào là PC/SP, mã `SCREEN`, thang mức độ bug, môi trường/cách truy cập, quyền CMS, độ rộng thiết bị, Figma token, breakpoint, trình duyệt).
@@ -177,7 +178,7 @@ Retest → dùng `/ai-tester:retest`.
 - **Bug ID**: `<PROJECT>-<SCREEN>-<SECTION>-<số thứ tự>` (vd `ABC-TOP-MAINVISUAL-01`). Mã lấy từ `D/CLAUDE.md`; `SECTION` theo tên section trong Figma (chưa có → thêm vào bảng trước). Số thứ tự tăng dần trong section, tính cả bug trong `D/archive/`. ID không đổi.
 - Mỗi bug gồm: vị trí (section, phần tử, PC/SP, viewport), mô tả lỗi (1–2 câu dễ hiểu), mong đợi (Figma + node-id), thực tế (giá trị đo), chênh lệch, bằng chứng, nguyên nhân (nếu biết), mức độ, loại, trạng thái, ngày và lượt phát hiện.
 
-**Bằng chứng**: `D/screens/<screen>/evidence/`; tên `<BugID>_<pc|sp>_<figma|site>.png` cho bug, `<YYYYMMDD>_<pc|sp>_<SECTION>_<figma|site>.png` cho hạng mục OK. Mỗi bug tối thiểu 1 ảnh Figma + 1 ảnh website. Không lưu được ảnh → ghi rõ và mô tả cách đo.
+**Bằng chứng**: `D/screens/<screen>/evidence/` (không commit — C-06; vì vậy bug và báo cáo phải tự đủ thông tin: giá trị Figma + node-id, giá trị đo, chênh lệch, cách đo); tên `<BugID>_<pc|sp>_<figma|site>.png` cho bug, `<YYYYMMDD>_<pc|sp>_<SECTION>_<figma|site>.png` cho hạng mục OK. Mỗi bug tối thiểu 1 ảnh Figma + 1 ảnh website. Không lưu được ảnh → ghi rõ và mô tả cách đo.
 
 **Báo cáo**: theo `P/templates/report.md` — thông tin chung (viewport + node-id frame + phiên bản Figma), tóm tắt 5 trạng thái, kết quả từng hạng mục, bug theo mức độ, vấn đề Figma & câu hỏi, hạng mục chưa/không thể kiểm tra, kiểm tra chéo, retest, kết luận trung thực. Không dùng "hoàn hảo", "khớp 100%", "không có lỗi" trừ khi mọi hạng mục đều OK có bằng chứng và đã qua kiểm tra chéo. Hook của plugin tự kiểm tra báo cáo; có phản hồi → sửa theo.
 

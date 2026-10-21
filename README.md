@@ -85,6 +85,7 @@ Lần đầu, AI tạo thư mục `.ai-tester/` và hỏi những thông tin cò
 | C-03 | Line-height | Quy đổi line-height Figma sang px rồi so; lệch là NG |
 | C-04 | Ảnh bị nén | Không so pixel màu; kiểm tra đúng ảnh, kích thước, crop, độ nét |
 | C-05 | Độ rộng test | So chính xác ở width frame Figma + lượt kiểm tra layout ở độ rộng thiết bị |
+| C-06 | Git | Commit `.ai-tester/`; không commit ảnh/số liệu bằng chứng (`evidence/`) |
 
 Danh sách mới nhất: [ai-tester/knowledge/common-rules.md](ai-tester/knowledge/common-rules.md).
 
@@ -100,6 +101,8 @@ Danh sách mới nhất: [ai-tester/knowledge/common-rules.md](ai-tester/knowled
 | Vấn đề / comment trong Figma | `.ai-tester/figma-issues.md` |
 | Quy tắc đã xác nhận, câu hỏi đang chờ | `.ai-tester/CLAUDE.md` |
 | Giá trị chuẩn từ styleguide | `.ai-tester/styleguide.md` |
+
+**Git:** commit thư mục `.ai-tester/` cùng repo website để cả đội xem được bug và báo cáo. Ảnh và số liệu bằng chứng (`evidence/`) **không** được commit, vì `.ai-tester/.gitignore` do AI tạo đã loại trừ chúng. Chúng chỉ nằm trên máy người test. Vì vậy mỗi bug và báo cáo luôn ghi đủ giá trị Figma, giá trị đo và chênh lệch, để người đọc hiểu được mà không cần ảnh.
 
 Trạng thái mỗi hạng mục: **OK** / **NG** / **Cần xác nhận (Need Check)** / **Chưa kiểm tra** / **Không thể kiểm tra**.
 **Bug ID**: `ABC-TOP-MAINVISUAL-01` = mã dự án – mã màn hình – section (theo Figma) – số thứ tự.
