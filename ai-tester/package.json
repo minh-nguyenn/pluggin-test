@@ -1,0 +1,15 @@
+{
+  "name": "ai-tester",
+  "version": "1.0.0",
+  "description": "Dependencies cho script do cua AI Tester",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "pixelmatch": "^7.2.0",
+    "playwright": "^1.64.1",
+    "pngjs": "^7.0.0"
+  }
+}

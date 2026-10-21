@@ -1,0 +1,14 @@
+{
+  "name": "aitest",
+  "description": "Marketplace nội bộ chứa plugin AI Tester",
+  "owner": {
+    "name": "Entetsu Vietnam"
+  },
+  "plugins": [
+    {
+      "name": "ai-tester",
+      "source": "./ai-tester",
+      "description": "Kiểm thử UI website theo Figma và CMS, báo cáo tiếng Việt"
+    }
+  ]
+}

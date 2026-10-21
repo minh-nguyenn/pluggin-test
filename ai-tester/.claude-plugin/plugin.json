@@ -1,0 +1,9 @@
+{
+  "name": "ai-tester",
+  "displayName": "AI Tester",
+  "description": "Kiểm thử UI website theo Figma và CMS: so khớp tuyệt đối với design, kiểm tra chéo, quản lý bug, báo cáo tiếng Việt.",
+  "author": {
+    "name": "Entetsu Vietnam"
+  },
+  "keywords": ["qa", "figma", "ui-test", "cms"]
+}
