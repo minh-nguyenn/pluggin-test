@@ -29,7 +29,7 @@ Ngôn ngữ làm việc và báo cáo: **tiếng Việt**. Nội dung tiếng Nh
 9. **Không bao giờ** khẳng định "đã test đầy đủ"/"khớp 100%" khi phạm vi/bằng chứng chưa đáp ứng. Không ghi "OK" cho hạng mục chưa thực sự kiểm tra.
 10. Không áp quy tắc của dự án khác khi chưa được người dùng xác nhận.
 11. **Không lưu mật khẩu/token** vào bất kỳ file nào. Chỉ ghi "đã có / chưa có".
-12. Khi test: **không sửa** mã nguồn website hay tool của repo — chỉ đọc, đo, ghi vào `D`; cần chỉnh tool của repo → copy vào scratchpad (L-06). Sửa code chỉ ở `/ai-tester:fix`, khi người dùng gọi.
+12. AI Tester **không bao giờ sửa** mã nguồn website hay tool của repo — chỉ đọc, đo, ghi vào `D`; cần chỉnh tool của repo → copy vào scratchpad (L-06). Việc sửa bug do Claude của dự án làm, theo `CLAUDE.md` và `.claude/` của repo website; AI Tester chỉ cung cấp dữ kiện để sửa.
 13. Được **đọc source** để: lập selector, biết trạng thái/điều kiện hiển thị (`v-if`, dữ liệu rỗng, nguồn CMS), xác định vị trí code gây bug. **Không** kết luận OK/NG từ code — kết luận luôn dựa trên kết quả hiển thị đo được.
 
 Quy tắc trong `D/CLAUDE.md` được ưu tiên hơn `P/knowledge/common-rules.md`, nhưng không ghi đè mục 1.
@@ -185,13 +185,13 @@ Dòng `overlay` = **so ảnh chồng** cả section (tín hiệu độc lập, k
 - Lỗi lượt 1 bỏ sót → `P/knowledge/lessons-learned.md` + bổ sung checklist nếu có thể lặp lại.
 
 ### Bước 7 — Ghi nhận & báo cáo
-- **Định vị code cho từng bug** (đọc source, không sửa): tìm component / file:dòng tạo ra phần tử lỗi (theo selector, class, chữ hiển thị, route), ghi mục **"Cách sửa"** trong khối Chi tiết của `D/bugs.md`: file:dòng, giá trị hiện tại, giá trị đúng theo Figma, ưu tiên token/utility có sẵn của repo, ảnh hưởng tới component dùng chung, cách kiểm lại. Bug cần quyết định design → "Sửa được ngay? = Cần xác nhận".
+- **Định vị code cho từng bug** (đọc source, không sửa): tìm component / file:dòng tạo ra phần tử lỗi (theo selector, class, chữ hiển thị, route), ghi mục **"Thông tin để sửa"** trong khối Chi tiết của `D/bugs.md`: file:dòng, giá trị hiện tại, **giá trị cần đạt** theo Figma, component dùng chung bị ảnh hưởng, cách kiểm lại. **Chỉ ghi dữ kiện** — không áp đặt cách viết code; cách triển khai do Claude của dự án quyết định theo `CLAUDE.md` / `.claude/` của repo. Bug cần quyết định design → "Sửa được ngay? = Cần xác nhận".
 - Cập nhật `D/bugs.md` (bảng Tóm tắt + Chi tiết theo `P/templates/bugs.md`), `D/figma-issues.md`; tạo `D/screens/<screen>/report-YYYYMMDD.md` theo `P/templates/report.md` (ghi commit/nhánh từ `summary.md`).
-- **Kết thúc bằng lệnh sửa sẵn** trong chat, để người dùng gõ ngay:
+- **Kết thúc bằng lời nhắc sửa soạn sẵn** trong chat, để người dùng gõ ngay cho Claude của dự án (không phải lệnh của AI Tester):
   ```
-  /ai-tester:fix <Bug ID sửa được ngay, cách nhau dấu cách>
+  Fix các bug <Bug ID sửa được ngay, cách nhau dấu cách> theo mục "Thông tin để sửa" trong .ai-tester/bugs.md, tuân theo CLAUDE.md và .claude của dự án.
   ```
-  kèm danh sách bug "Cần xác nhận" (câu hỏi cho người dùng). Không còn bug → "Sẵn sàng bàn giao tester".
+  rồi lệnh kiểm lại sau khi sửa: `/ai-tester:retest <các Bug ID đó>`. Kèm danh sách bug "Cần xác nhận" (câu hỏi cho người dùng). Không còn bug → "Sẵn sàng bàn giao tester".
 
 Retest → dùng `/ai-tester:retest`.
 

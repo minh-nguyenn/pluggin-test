@@ -1,6 +1,6 @@
 # CLAUDE.md — Bảo trì plugin AI Tester
 
-Thư mục này là **marketplace nội bộ `aitest`** chứa plugin **`ai-tester`**: dev tự kiểm UI website (chạy local) theo Figma & CMS **trước khi bàn giao tester**, rồi cho AI sửa bug và tự retest. Thư mục này chỉ để phát triển và bảo trì plugin.
+Thư mục này là **marketplace nội bộ `aitest`** chứa plugin **`ai-tester`**: dev tự kiểm UI website (chạy local) theo Figma & CMS **trước khi bàn giao tester**, ghi bug kèm dữ kiện để Claude của dự án sửa theo CLAUDE.md/.claude của repo. AI Tester không sửa code. Thư mục này chỉ để phát triển và bảo trì plugin.
 
 Ngôn ngữ làm việc: **tiếng Việt**.
 
@@ -13,7 +13,6 @@ ai-tester/                         # Plugin root (${CLAUDE_PLUGIN_ROOT})
   .claude-plugin/plugin.json
   skills/test/SKILL.md             # Nguyên tắc + quy trình test (thay cho CLAUDE.md gốc trước đây)
   skills/retest/SKILL.md
-  skills/fix/SKILL.md              # Sửa code các bug đã ghi, rồi tự retest (bước duy nhất được sửa source website)
   skills/cleanup/SKILL.md          # Chỉ người dùng gọi
   skills/update/SKILL.md           # Chỉ người dùng gọi — rà soát nền tảng
   agents/ui-reviewer.md            # Subagent kiểm tra chéo

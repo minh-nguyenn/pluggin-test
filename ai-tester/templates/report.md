@@ -57,9 +57,10 @@
 ## 9. Kết luận
 <!-- Trung thực về phạm vi. Ví dụ: "Đã kiểm tra 42/50 hạng mục; 8 hạng mục chưa kiểm tra do chưa có quyền CMS. Phát hiện 5 bug (1 High, 3 Medium, 1 Low). Chưa thể kết luận màn hình khớp hoàn toàn với Figma." -->
 
-**Lệnh sửa** (bug sửa được ngay):
+**Lời nhắc sửa** (gõ cho Claude của dự án — sửa theo CLAUDE.md và .claude của repo):
 ```
-/ai-tester:fix <Bug ID …>
+Fix các bug <Bug ID …> theo mục "Thông tin để sửa" trong .ai-tester/bugs.md, tuân theo CLAUDE.md và .claude của dự án.
 ```
+**Sau khi sửa**: `/ai-tester:retest <Bug ID …>`
 **Cần xác nhận trước khi sửa**: <Bug ID — câu hỏi>
 **Trạng thái bàn giao**: Chưa sẵn sàng / Sẵn sàng bàn giao tester

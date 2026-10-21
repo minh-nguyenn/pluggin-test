@@ -1,9 +1,9 @@
 # AI Tester — Plugin Claude Code tự kiểm UI theo Figma trước khi bàn giao tester
 
-AI Tester là plugin cho Claude Code, cài vào **repo mã nguồn website**. Dev chạy website ở **local**, gọi `/ai-tester:test <màn hình>`: AI so trang local với Figma từng phần tử, kiểm link/anchor/tương tác, ghi bug **kèm vị trí code và cách sửa**. Sau đó gõ `/ai-tester:fix …` để AI sửa và tự retest. Hết bug → bàn giao tester. Dữ liệu test lưu trong repo website, thư mục `.ai-tester/`.
+AI Tester là plugin cho Claude Code, cài vào **repo mã nguồn website**. Dev chạy website ở **local**, gọi `/ai-tester:test <màn hình>`: AI so trang local với Figma từng phần tử, kiểm link/anchor/tương tác, ghi bug **kèm vị trí code và giá trị cần đạt**. AI Tester **không sửa code**: bạn giao cho Claude của dự án sửa theo `CLAUDE.md` và `.claude/` của repo (AI Tester in sẵn câu lệnh), rồi `/ai-tester:retest`. Hết bug → bàn giao tester. Dữ liệu test lưu trong repo website, thư mục `.ai-tester/`.
 
 ```
-npm run dev → /ai-tester:test TOP → (bug + lệnh sửa) → /ai-tester:fix <Bug ID…> → tự retest → bàn giao tester
+npm run dev → /ai-tester:test TOP → (bug + lời nhắc sửa) → Claude của dự án sửa theo CLAUDE.md/.claude → /ai-tester:retest → bàn giao tester
 ```
 
 ---
@@ -54,8 +54,7 @@ Khi được hỏi phạm vi, chọn **local**: chỉ bật cho bạn, trong rep
 
 | Lệnh | Việc AI làm |
 |---|---|
-| `/ai-tester:test <màn hình>` | Test một màn trên dev server local: so Figma, kiểm link/anchor/tương tác, kiểm tra chéo, ghi bug kèm vị trí code + cách sửa, in sẵn lệnh fix |
-| `/ai-tester:fix <Bug ID… \| màn hình \| tất cả>` | Sửa code đúng các bug đã ghi (theo convention của repo), rồi tự retest. Bug "Cần xác nhận" được bỏ qua |
+| `/ai-tester:test <màn hình>` | Test một màn trên dev server local: so Figma, kiểm link/anchor/tương tác, kiểm tra chéo, ghi bug kèm vị trí code + giá trị cần đạt, in sẵn lời nhắc sửa |
 | `/ai-tester:retest <Bug ID… hoặc tên màn hình>` | Retest bug đã sửa, kèm kiểm tra hồi quy |
 | `/ai-tester:cleanup` | Đề xuất dọn dữ liệu cũ; bạn duyệt rồi AI mới làm |
 | `/ai-tester:update` | Rà soát công cụ AI mới và đề xuất nâng cấp plugin |
@@ -69,12 +68,12 @@ Bạn cũng có thể nói bằng lời, ví dụ "test màn hình TOP theo Figm
    /ai-tester:test TOP
    ```
    Màn mới: thêm link Figma PC/SP và route, ví dụ `/ai-tester:test ABOUT Figma PC: <link> Figma SP: <link> Route: /recruit/about`.
-3. Cuối lượt test, AI in sẵn lệnh, ví dụ:
+3. Cuối lượt test, AI Tester in sẵn lời nhắc, ví dụ:
    ```
-   /ai-tester:fix RECRUIT-TOP-JOBCATEGORIES-01 RECRUIT-TOP-KNOW-01 RECRUIT-TOP-NEWS-02
+   Fix các bug RECRUIT-TOP-JOBCATEGORIES-01 RECRUIT-TOP-KNOW-01 theo mục "Thông tin để sửa" trong .ai-tester/bugs.md, tuân theo CLAUDE.md và .claude của dự án.
    ```
-   Gõ lệnh đó (hoặc `/ai-tester:fix tất cả`) để AI sửa và tự retest. Bug "Cần xác nhận" cần bạn trả lời trước.
-4. Không còn bug → AI ghi "Sẵn sàng bàn giao tester".
+   Gõ lời nhắc đó cho Claude (cùng phiên hoặc phiên mới trong repo). Claude của dự án sửa theo rule của dự án — AI Tester không sửa code. Bug "Cần xác nhận" cần bạn trả lời trước.
+4. Sửa xong: `/ai-tester:retest <các Bug ID>`. Không còn bug → AI ghi "Sẵn sàng bàn giao tester".
 
 Lần đầu trong một repo, AI tạo `.ai-tester/` và hỏi các thông tin còn thiếu (mã dự án, mã màn hình, URL local và lệnh chạy dev server…). Mỗi thông tin chỉ trả lời **một lần**.
 
@@ -83,7 +82,7 @@ Thêm hoặc đổi quy tắc: nói trực tiếp kèm phạm vi, ví dụ "Nút
 ### Lưu ý
 - **Mật khẩu và token** (basic auth, CMS, Figma): chỉ đưa khi AI cần. Hook sẽ chặn nếu AI định ghi chúng vào file.
 - Khi AI hỏi, trả lời kèm **phạm vi áp dụng** (chỉ chỗ này / cả màn hình / cả dự án / mọi dự án) để AI không hỏi lại.
-- AI chỉ **đọc** CMS. Khi test, AI chỉ **đọc** source (để tìm selector và vị trí code gây bug); **chỉ sửa code khi bạn gọi `/ai-tester:fix`**, và không commit/push nếu bạn không yêu cầu.
+- AI chỉ **đọc** CMS. Khi test, AI chỉ **đọc** source (để tìm selector và vị trí code gây bug); **không bao giờ sửa code** — việc sửa thuộc về Claude của dự án.
 - Báo cáo ghi nhánh/commit/số file chưa commit lúc test, để biết kết quả ứng với bản code nào.
 - **Figma token**: tạo tại Figma › Settings › Security › Personal access tokens. Token dùng để đọc comment trong Figma.
 

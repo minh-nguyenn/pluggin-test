@@ -12,7 +12,8 @@ Trạng thái: Mới → Đang sửa → Đã sửa (chờ retest) → Đã đó
 
 ## Chi tiết
 
-<!-- Mỗi bug một khối như dưới. Mục "Cách sửa" phải đủ để /ai-tester:fix sửa mà không cần đo lại. -->
+<!-- Mỗi bug một khối như dưới. Mục "Thông tin để sửa" chỉ ghi DỮ KIỆN, đủ để Claude của dự án sửa mà không cần đo lại;
+     cách triển khai (token, utility, cấu trúc component…) do Claude của dự án quyết định theo CLAUDE.md và .claude/ của repo. -->
 
 ### <Bug ID> — <mô tả ngắn>
 - **Vị trí hiển thị**: <màn hình> · <section> · <phần tử> · <PC/SP, viewport>
@@ -22,11 +23,11 @@ Trạng thái: Mới → Đang sửa → Đã sửa (chờ retest) → Đã đó
 - **Chênh lệch**: <vd +4px, #333333 → #3A3A3A>
 - **Căn cứ**: <C-xx / R-xx nếu có>
 - **Bằng chứng**: `screens/<screen>/evidence/<...>` (chỉ trên máy người test)
-- **Cách sửa**:
-  - File: `<đường dẫn>:<dòng>` (component / class / biến CSS liên quan)
+- **Thông tin để sửa**:
+  - Vị trí code: `<đường dẫn>:<dòng>` (component / class / biến CSS / hằng số liên quan)
   - Hiện tại: `<đoạn code hoặc giá trị hiện tại>`
-  - Sửa thành: `<giá trị đúng theo Figma>` — <ghi chú: dùng token/utility có sẵn của repo nếu có>
+  - Cần đạt: <giá trị đúng theo Figma, vd letter-spacing 1.5px, màu #0f5eb2, href tới trang tồn tại>
   - Ảnh hưởng: <component dùng chung ở đâu khác — cần kiểm lại màn nào>
-  - Kiểm lại: <cách xác nhận sau khi sửa, vd dòng nào trong `compare.json` phải thành OK>
+  - Kiểm lại: <cách xác nhận sau khi sửa, vd `/ai-tester:retest <Bug ID>`, dòng nào trong `compare.json` phải thành OK>
 - **Phát hiện**: <ngày>, lượt <1/2>
 - **Trạng thái**: <...> · **Retest**: <ngày, kết quả>
