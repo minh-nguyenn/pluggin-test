@@ -6,6 +6,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const HIDE_SCROLLBAR = 'html{scrollbar-width:none!important}::-webkit-scrollbar{display:none!important}';
+// Công cụ của chế độ dev (không thuộc giao diện) — ẩn để không lẫn vào ảnh chụp / so ảnh chồng
+const DEV_OVERLAYS = ['#nuxt-devtools-container', 'nuxt-devtools-frame', 'nuxt-devtools-inspect-panel', '#vue-tracer-overlay', '.nuxt-devtools-panel', 'vite-error-overlay', '#__vue-devtools-container__', '[data-v-inspector-overlay]', 'nuxt-loading-indicator', '.nuxt-loading-indicator'];
+const isLocal = (url) => /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|[\w-]+\.local)(:\d+)?\//i.test(url + '/');
 
 export function pickSel(sel, vp) {
   if (!sel || typeof sel === 'string') return sel || null;
@@ -36,15 +39,18 @@ async function measureOne(browser, cfg, vp, outDir, httpCredentials) {
   fs.mkdirSync(dir, { recursive: true });
   const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: 1, httpCredentials });
   context.setDefaultTimeout(5000);
-  if (cfg.hideScrollbar !== false) {
-    await context.addInitScript((css) => {
-      const add = () => { const s = document.createElement('style'); s.textContent = css; document.documentElement.appendChild(s); };
-      if (document.documentElement) add(); else document.addEventListener('DOMContentLoaded', add);
-    }, HIDE_SCROLLBAR);
-  }
+  const hide = [...DEV_OVERLAYS, ...(cfg.hideSelectors || [])].join(',') + '{display:none!important}';
+  const css = (cfg.hideScrollbar !== false ? HIDE_SCROLLBAR : '') + hide;
+  await context.addInitScript((c) => {
+    const add = () => { const s = document.createElement('style'); s.textContent = c; document.documentElement.appendChild(s); };
+    if (document.documentElement) add(); else document.addEventListener('DOMContentLoaded', add);
+  }, css);
   try {
     const page = await context.newPage();
-    await page.goto(cfg.url, { waitUntil: 'networkidle', timeout: 90000 });
+    // Dev server local luôn giữ kết nối HMR → không bao giờ "networkidle": chờ load rồi chờ thêm settleMs
+    const waitUntil = cfg.waitUntil ?? (isLocal(cfg.url) ? 'load' : 'networkidle');
+    await page.goto(cfg.url, { waitUntil, timeout: 90000 });
+    if (waitUntil === 'load') await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     await page.evaluate(() => document.fonts.ready);
     // Cuộn hết trang để nạp ảnh lazy, rồi về đầu trang
     await page.evaluate(async () => {

@@ -13,7 +13,8 @@ Trước khi test, mọi dòng phải có giá trị hoặc ghi "Không áp dụ
 | Mã PROJECT (Bug ID) | | |
 | Figma file | | |
 | Styleguide / file base (link, node-id — hoặc "Không có") | | |
-| Website (môi trường test) | | |
+| Website test: URL gốc dev server local (vd `http://localhost:<port>`) | | |
+| Lệnh chạy dev server | | |
 | Cách truy cập website (basic auth...) — không ghi mật khẩu | | |
 | CMS | | |
 | Quyền CMS hiện có | | |

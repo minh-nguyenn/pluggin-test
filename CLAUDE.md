@@ -1,6 +1,6 @@
 # CLAUDE.md — Bảo trì plugin AI Tester
 
-Thư mục này là **marketplace nội bộ `aitest`** chứa plugin **`ai-tester`** (kiểm thử UI website theo Figma & CMS). Tester dùng plugin trong repo website; thư mục này chỉ để phát triển và bảo trì plugin.
+Thư mục này là **marketplace nội bộ `aitest`** chứa plugin **`ai-tester`**: dev tự kiểm UI website (chạy local) theo Figma & CMS **trước khi bàn giao tester**, rồi cho AI sửa bug và tự retest. Thư mục này chỉ để phát triển và bảo trì plugin.
 
 Ngôn ngữ làm việc: **tiếng Việt**.
 
@@ -13,6 +13,7 @@ ai-tester/                         # Plugin root (${CLAUDE_PLUGIN_ROOT})
   .claude-plugin/plugin.json
   skills/test/SKILL.md             # Nguyên tắc + quy trình test (thay cho CLAUDE.md gốc trước đây)
   skills/retest/SKILL.md
+  skills/fix/SKILL.md              # Sửa code các bug đã ghi, rồi tự retest (bước duy nhất được sửa source website)
   skills/cleanup/SKILL.md          # Chỉ người dùng gọi
   skills/update/SKILL.md           # Chỉ người dùng gọi — rà soát nền tảng
   agents/ui-reviewer.md            # Subagent kiểm tra chéo
@@ -23,6 +24,7 @@ ai-tester/                         # Plugin root (${CLAUDE_PLUGIN_ROOT})
   tools/lib/measure.mjs            #   Đo website: mọi viewport trong 1 lần mở Chrome
   tools/lib/compare.mjs            #   Ghép + so từng phần tử trong section
   tools/lib/image.mjs              #   Ảnh đối chiếu vùng NG
+  tools/run/crop.mjs               # Cắt + phóng ảnh Figma/website để xem kỹ
   tools/figma/comments.mjs         # Đọc comment Figma (FIGMA_TOKEN)
   package.json, package-lock.json  # playwright, pngjs, pixelmatch — `npm install` tại ai-tester/
   knowledge/                       # Quy tắc chung, checklist, bài học — AI ghi vào khi học

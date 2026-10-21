@@ -29,7 +29,8 @@ Ngôn ngữ làm việc và báo cáo: **tiếng Việt**. Nội dung tiếng Nh
 9. **Không bao giờ** khẳng định "đã test đầy đủ"/"khớp 100%" khi phạm vi/bằng chứng chưa đáp ứng. Không ghi "OK" cho hạng mục chưa thực sự kiểm tra.
 10. Không áp quy tắc của dự án khác khi chưa được người dùng xác nhận.
 11. **Không lưu mật khẩu/token** vào bất kỳ file nào. Chỉ ghi "đã có / chưa có".
-12. Không sửa mã nguồn website hay tool của repo. AI Tester chỉ đọc, đo, ghi vào `D`; cần chỉnh tool của repo → copy vào scratchpad (L-06).
+12. Khi test: **không sửa** mã nguồn website hay tool của repo — chỉ đọc, đo, ghi vào `D`; cần chỉnh tool của repo → copy vào scratchpad (L-06). Sửa code chỉ ở `/ai-tester:fix`, khi người dùng gọi.
+13. Được **đọc source** để: lập selector, biết trạng thái/điều kiện hiển thị (`v-if`, dữ liệu rỗng, nguồn CMS), xác định vị trí code gây bug. **Không** kết luận OK/NG từ code — kết luận luôn dựa trên kết quả hiển thị đo được.
 
 Quy tắc trong `D/CLAUDE.md` được ưu tiên hơn `P/knowledge/common-rules.md`, nhưng không ghi đè mục 1.
 
@@ -144,7 +145,8 @@ _Rà soát lần cuối: 2026-10-21 (xem `/ai-tester:update`)._
 ## 7. Các bước test
 
 ### Bước 0 — Kiểm tra đầu vào (≤ 2 phút, trước mọi việc khác)
-- URL: mở được, title/đường dẫn đúng dự án và đúng màn hình (sai site → hỏi ngay).
+- **Môi trường test = dev server local** (URL gốc + lệnh chạy lấy từ `D/CLAUDE.md`; chưa có → đọc cấu hình dự án (vd `package.json`, `nuxt.config`) làm căn cứ, vẫn không chắc → hỏi). Server chưa chạy → báo người dùng chạy lệnh dev, không tự khởi động server lâu dài.
+- Người dùng chỉ định màn hình → lấy route và link Figma của màn từ `D/CLAUDE.md` (hoặc bảng Figma trong `CLAUDE.md` của repo). URL màn: mở được, đúng màn hình.
 - Link Figma: `get_metadata` một lần cho frame PC/SP — đúng tên màn hình, lấy width/height.
 - `FIGMA_TOKEN` có không; phạm vi màn hình (thiếu → hỏi).
 - Repo chưa có `D` → các câu hỏi khởi tạo (mục 3). **Gom mọi câu hỏi của bước này vào một lần hỏi.**
@@ -183,7 +185,13 @@ Dòng `overlay` = **so ảnh chồng** cả section (tín hiệu độc lập, k
 - Lỗi lượt 1 bỏ sót → `P/knowledge/lessons-learned.md` + bổ sung checklist nếu có thể lặp lại.
 
 ### Bước 7 — Ghi nhận & báo cáo
-Cập nhật `D/bugs.md`, `D/figma-issues.md`; tạo `D/screens/<screen>/report-YYYYMMDD.md` theo `P/templates/report.md`. Tóm tắt trong chat.
+- **Định vị code cho từng bug** (đọc source, không sửa): tìm component / file:dòng tạo ra phần tử lỗi (theo selector, class, chữ hiển thị, route), ghi mục **"Cách sửa"** trong khối Chi tiết của `D/bugs.md`: file:dòng, giá trị hiện tại, giá trị đúng theo Figma, ưu tiên token/utility có sẵn của repo, ảnh hưởng tới component dùng chung, cách kiểm lại. Bug cần quyết định design → "Sửa được ngay? = Cần xác nhận".
+- Cập nhật `D/bugs.md` (bảng Tóm tắt + Chi tiết theo `P/templates/bugs.md`), `D/figma-issues.md`; tạo `D/screens/<screen>/report-YYYYMMDD.md` theo `P/templates/report.md` (ghi commit/nhánh từ `summary.md`).
+- **Kết thúc bằng lệnh sửa sẵn** trong chat, để người dùng gõ ngay:
+  ```
+  /ai-tester:fix <Bug ID sửa được ngay, cách nhau dấu cách>
+  ```
+  kèm danh sách bug "Cần xác nhận" (câu hỏi cho người dùng). Không còn bug → "Sẵn sàng bàn giao tester".
 
 Retest → dùng `/ai-tester:retest`.
 

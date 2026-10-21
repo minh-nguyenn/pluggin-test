@@ -39,6 +39,15 @@ const cache = path.resolve(arg('cache') || path.join(out, '..', 'figma-cache'));
 fs.mkdirSync(out, { recursive: true });
 if (arg('only')) { const only = String(arg('only')).split(','); cfg.viewports = cfg.viewports.filter((v) => only.includes(v.name)); }
 
+// Phiên bản code đang test (chạy trong repo website): commit, nhánh, số file chưa commit
+let gitInfo = null;
+try {
+  const { execSync } = await import('node:child_process');
+  const g = (c) => execSync(`git ${c}`, { cwd: process.cwd(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  const dirty = g('status --porcelain').split('\n').filter(Boolean);
+  gitInfo = { commit: g('rev-parse --short HEAD'), branch: g('rev-parse --abbrev-ref HEAD'), dirty: dirty.length };
+} catch {}
+
 const t0 = Date.now();
 const log = (...a) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0)}s]`, ...a);
 const notes = [];
@@ -175,6 +184,7 @@ for (const vp of cfg.viewports) {
 const esc = (v) => String(v ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
 let md = `# Kết quả so sánh tự động\n\nURL: ${cfg.url}\nĐo lúc: ${new Date().toISOString()} · Thời gian chạy: ${((Date.now() - t0) / 1000).toFixed(0)}s\n`;
 if (figmaMeta) md += `Figma: ${figmaMeta.name} · lastModified ${figmaMeta.lastModified} · version ${figmaMeta.version}\n`;
+if (gitInfo) md += `Code: nhánh ${gitInfo.branch} · commit ${gitInfo.commit}${gitInfo.dirty ? ` · ${gitInfo.dirty} file chưa commit` : ''}\n`;
 for (const n of notes) md += `\n${n}\n`;
 md += `\n> Script chỉ so số liệu, không áp quy tắc. AI phải đối chiếu từng dòng NG/REVIEW với quy tắc dự án (R-xx) và quy tắc chung (C-xx) trước khi kết luận.\n`;
 for (const { vp, rows, data, compared } of summary) {

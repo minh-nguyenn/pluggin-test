@@ -34,6 +34,11 @@ Mỗi lần AI phải hỏi người dùng → ghi 1 dòng: vì sao phải hỏi
 | 2026-10-21 | RECRUIT / TOP | Lưới 2 cột SP: Figma tổng 334 trong khung 335, site chia đều 157.5/163.5 | Figma thiếu 1px, không thể khớp tuyệt đối cả hai | Chấp nhận chia đều (R-07 dự án) | Lỗi làm tròn kiểu này có thể lặp ở dự án khác → hỏi người dùng có áp dụng chung không |
 | 2026-10-21 | RECRUIT / TOP | Khối お知らせ TOP ẩn khi không có tin, trái với quy tắc "list rỗng hiện câu trống" | Quy tắc dự án mâu thuẫn với code hiện tại | TOP được ẩn — ngoại lệ (R-04 dự án) | Khi thấy ngoại lệ của quy tắc đã có → ghi ngoại lệ ngay cạnh quy tắc gốc |
 
+| 2026-10-21 | RECRUIT / TOP | Nút CTA: Figma viền 1px trắng trên nền trắng, site không viền | Script so border-width ra NG dù hình giống nhau | C-10 (mọi dự án) | Viền inside cùng màu nền → áp C-10, không hỏi lại |
+| 2026-10-21 | RECRUIT / TOP | Mega-menu PC không đóng khi click ngoài / khi cuộn | Figma không vẽ hành vi đóng | R-10 (chấp nhận như hiện tại) | Hành vi đóng menu không có design → ghi R-10, không tính bug |
+| 2026-10-21 | RECRUIT / TOP | Tin お知らせ có tiêu đề test 「kim2」 | Dữ liệu CMS trên dev | R-11 (bỏ qua dữ liệu dev) | Dữ liệu test trên môi trường dev → ghi chú, không hỏi lại |
+| 2026-10-21 | RECRUIT / TOP | Lệch dồn qua nhiều hàng do C-08 | AI dùng mã C-08 trong câu hỏi, người dùng không biết C-08 là gì | Bổ sung C-08: lệch cộng dồn cùng nguyên nhân không NG | Khi hỏi về quy tắc, ghi nguyên văn nội dung quy tắc, không chỉ mã ID |
+
 ## 3. Hiệu quả kiểm tra chéo
 
 Mỗi lượt test đầu của một màn hình → 1 dòng. Dùng để quyết định đưa loại lỗi nào vào script/checklist lượt 1, và khi nào thu hẹp lượt 2.
@@ -41,3 +46,4 @@ Mỗi lượt test đầu của một màn hình → 1 dòng. Dùng để quyế
 | Ngày | Dự án / Màn hình | Lượt 2 phát hiện mới (số, theo loại) | Kiểm chứng script (số điểm sai / 10) | Vùng so ảnh chồng chưa giải thích | Hành động |
 |---|---|---|---|---|---|
 | 2026-10-21 | RECRUIT / TOP (trước khi có `run.mjs`) | 5: tương tác 1 (anchor không cuộn), typography 1 (letter-spacing), spacing 1 (padding nhãn), icon 1, trạng thái header 1 | — | — | Đã đưa vào checklist (L-07, L-08) và script (`run.mjs` so mọi typography) |
+| 2026-10-21 | RECRUIT / TOP (test lại bằng `run.mjs`) | Lượt 2 không có lỗi mới mà lượt 1 + script bỏ sót về giao diện; thêm: nguyên nhân lỗi anchor (console), hành vi đóng mega-menu (R-10), tải trực tiếp #hash bị header che, textContent h1 lặp ｜, lệch dồn SP | 0 / 10 (lượt 2 kiểm 10 phần tử mẫu, không thấy ghép nhầm) | 0 sau khi AI giải thích (FV do animation chưa xong khi chụp; JOBCAT ngoài viewport; FACILITIES thẻ chú thích 既存素材; CTA ảnh 5 → bug CTA-01) | Đề xuất script: chờ animation/fade-in xong trước khi chụp (ảnh FV trống); chụp `site.png` đủ cao |
